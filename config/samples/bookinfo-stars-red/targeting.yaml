@@ -1,0 +1,13 @@
+apiVersion: remesh.bevyx.com/v1alpha1
+kind: Targeting
+metadata:
+  name: test-user-joey
+spec:
+  ingress: bookinfo
+  priority: 3
+  segment:
+  - httpMatch:
+      - headers:
+          cookie:
+            regex: "^(.*?;)?(user=joey)(;.*)?$"
+  virtualEnvironment: bookinfo-stars-red

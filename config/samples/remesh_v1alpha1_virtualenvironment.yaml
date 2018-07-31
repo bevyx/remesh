@@ -1,0 +1,9 @@
+apiVersion: remesh.bevyx.com/v1alpha1
+kind: VirtualEnvironment
+metadata:
+  labels:
+    controller-tools.k8s.io: "1.0"
+  name: virtualenvironment-sample
+spec:
+  # Add fields here
+  foo: bar
