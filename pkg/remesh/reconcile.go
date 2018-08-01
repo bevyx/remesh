@@ -19,11 +19,12 @@ func combine(virtualEnvironmentList api.VirtualEnvironmentList, targetingList ap
 		defaultVirtualEnvironment, ok := findVirtualEnvironment(entrypoint.Spec.DefaultVirtualEnvironment, virtualEnvironmentList.Items)
 		if ok {
 			targetings := getAllTargetingsByEntrypoint(entrypoint.ObjectMeta.Name, targetingList.Items)
+			targetingFlows, virtualEnvironmentSet := combineTargetingToVirtualEnvironments(targetings, virtualEnvironmentList.Items)
 			entrypointFlows = append(entrypointFlows, models.EntrypointFlow{
 				Entrypoint:                entrypoint,
 				DefaultVirtualEnvironment: defaultVirtualEnvironment,
-				TargetingFlows:            combineTargetingToVirtualEnvironments(targetings, virtualEnvironmentList.Items),
-				VirtualEnvironments:       virtualEnvironmentList.Items,
+				TargetingFlows:            targetingFlows,
+				VirtualEnvironments:       virtualEnvironmentSet,
 			})
 		} else {
 			// TODO: Notify that we are waiting for virtual env to be created
@@ -32,17 +33,23 @@ func combine(virtualEnvironmentList api.VirtualEnvironmentList, targetingList ap
 	return entrypointFlows
 }
 
-func combineTargetingToVirtualEnvironments(targetings []api.Targeting, virtualEnvironments []api.VirtualEnvironment) []models.TargetingFlow {
+func combineTargetingToVirtualEnvironments(targetings []api.Targeting, virtualEnvironments []api.VirtualEnvironment) ([]models.TargetingFlow, []api.VirtualEnvironment) {
 	targetingFlows := make([]models.TargetingFlow, 0)
+	virtualEnvironmentMap := map[string]api.VirtualEnvironment{}
 	for _, targeting := range targetings {
 		virtualEnvironment, ok := findVirtualEnvironment(targeting.Spec.VirtualEnvironment, virtualEnvironments)
+		virtualEnvironmentMap[virtualEnvironment.Name] = virtualEnvironment
 		if ok {
 			targetingFlows = append(targetingFlows, models.TargetingFlow{
 				Targeting:          targeting,
 				VirtualEnvironment: virtualEnvironment})
 		}
 	}
-	return targetingFlows
+	virtualEnvironmentSet := make([]api.VirtualEnvironment, 0)
+	for _, value := range virtualEnvironmentMap {
+		virtualEnvironmentSet = append(virtualEnvironmentSet, value)
+	}
+	return targetingFlows, virtualEnvironmentSet
 }
 
 func getAllTargetingsByEntrypoint(entrypointName string, targetings []api.Targeting) []api.Targeting {

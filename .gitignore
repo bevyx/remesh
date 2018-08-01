@@ -22,3 +22,10 @@ zz_generated.*
 *.swp
 *.swo
 *~
+
+bazel-*
+.idea
+.vscode
+.vs
+.DS_Store
+bin

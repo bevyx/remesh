@@ -14,3 +14,7 @@ func computeHash(service *map[string]string) string {
 
 	return rand.SafeEncodeString(fmt.Sprint(serviceSubsetHasher.Sum32()))
 }
+
+const (
+	Prefix = "remesh-"
+)
