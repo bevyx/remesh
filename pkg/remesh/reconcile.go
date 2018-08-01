@@ -13,7 +13,7 @@ func Reconcile() (err error) {
 	return nil
 }
 
-func combine(virtualEnvironmentList api.VirtualEnvironmentList, targetingList api.TargetingList, entrypointList api.EntrypointList) []models.EntrypointFlow {
+func Combine(virtualEnvironmentList api.VirtualEnvironmentList, targetingList api.TargetingList, entrypointList api.EntrypointList) []models.EntrypointFlow {
 	entrypointFlows := make([]models.EntrypointFlow, 0)
 	for _, entrypoint := range entrypointList.Items {
 		defaultVirtualEnvironment, ok := findVirtualEnvironment(entrypoint.Spec.DefaultVirtualEnvironment, virtualEnvironmentList.Items)

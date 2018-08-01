@@ -43,6 +43,30 @@ rules:
 - apiGroups:
   - remesh.bevyx.com
   resources:
+  - entrypoints
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - remesh.bevyx.com
+  resources:
   - targetings
   verbs:
   - get
