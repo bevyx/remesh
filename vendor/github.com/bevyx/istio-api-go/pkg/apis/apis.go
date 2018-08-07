@@ -15,7 +15,7 @@ limitations under the License.
 */
 
 // Generate deepcopy for apis
-//go:generate go run ../../vendor/k8s.io/code-generator/cmd/deepcopy-gen/main.go -O zz_generated.deepcopy -i ./... -h ../../hack/boilerplate.go.txt
+//go:generate ../../vendor/k8s.io/code-generator/generate-groups.sh all github.com/bevyx/istio-api-go/pkg/client github.com/bevyx/istio-api-go/pkg/apis "networking:v1alpha3" --go-header-file ../../hack/boilerplate.go.txt
 
 // Package apis contains Kubernetes API groups.
 package apis

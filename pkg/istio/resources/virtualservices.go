@@ -1,7 +1,7 @@
 package resources
 
 import (
-	istioapi "github.com/bevyx/istio-api-go/pkg/apis/istio/v1alpha3"
+	istioapi "github.com/bevyx/istio-api-go/pkg/apis/networking/v1alpha3"
 	istiomodels "github.com/bevyx/remesh/pkg/istio/models"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )

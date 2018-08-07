@@ -20,7 +20,7 @@ import (
 	"context"
 
 	remeshv1alpha1 "github.com/bevyx/remesh/pkg/apis/remesh/v1alpha1"
-	// istioapi "github.com/bevyx/istio-api-go/pkg/apis/istio/v1alpha3"
+	// istioapi "github.com/bevyx/istio-api-go/pkg/apis/networking/v1alpha3"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"

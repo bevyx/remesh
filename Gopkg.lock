@@ -10,8 +10,8 @@
 [[projects]]
   branch = "master"
   name = "github.com/bevyx/istio-api-go"
-  packages = ["pkg/apis/istio/v1alpha3"]
-  revision = "0251b12dc4b8caa50c65b869b2bbb457e56ede95"
+  packages = ["pkg/apis/networking/v1alpha3"]
+  revision = "4ee830b2a1a741998b9e6a66440fdc0317a3f014"
 
 [[projects]]
   name = "github.com/davecgh/go-spew"
@@ -629,6 +629,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "bfc99c1591f4fd687399e3601e6cf4dbe33c5161d7e8211fe11dac5c70f7cbeb"
+  inputs-digest = "550c1ab1b0687da4c561b208ca0c9acf6e9c2f3cb3ae50fd9b59d64cf92184ba"
   solver-name = "gps-cdcl"
   solver-version = 1
