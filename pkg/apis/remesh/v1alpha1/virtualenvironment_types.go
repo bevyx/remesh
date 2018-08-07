@@ -25,8 +25,8 @@ type PortSelector struct {
 }
 
 type DestinationRoute struct {
-	Host string        `json:"host,omitempty"`
-	Port *PortSelector `json:"port,omitempty"`
+	Host string       `json:"host,omitempty"`
+	Port PortSelector `json:"port,omitempty"`
 }
 
 type Service struct {
@@ -35,19 +35,25 @@ type Service struct {
 }
 
 type HTTPRoute struct {
-	Match            []*HTTPMatchRequest `json:"match,omitempty"`
-	DestinationRoute DestinationRoute    `json:"destinationRoute,omitempty"`
+	Match            []HTTPMatchRequest `json:"match,omitempty"`
+	DestinationRoute DestinationRoute   `json:"destinationRoute,omitempty"`
 }
 
 type HTTPMatchRequest struct {
-	Uri          map[string]string            `json:"uri,omitempty"`
-	Scheme       map[string]string            `json:"scheme,omitempty"`
-	Method       map[string]string            `json:"method,omitempty"`
-	Authority    map[string]string            `json:"authority,omitempty"`
-	Headers      map[string]map[string]string `json:"headers,omitempty"`
-	Port         uint32                       `json:"port,omitempty"`
-	SourceLabels map[string]string            `json:"source_labels,omitempty"`
-	Gateways     []string                     `json:"gateways,omitempty"`
+	Uri          StringMatch            `json:"uri,omitempty"`
+	Scheme       StringMatch            `json:"scheme,omitempty"`
+	Method       StringMatch            `json:"method,omitempty"`
+	Authority    StringMatch            `json:"authority,omitempty"`
+	Headers      map[string]StringMatch `json:"headers,omitempty"`
+	Port         uint32                 `json:"port,omitempty"`
+	SourceLabels map[string]string      `json:"source_labels,omitempty"`
+	Gateways     []string               `json:"gateways,omitempty"`
+}
+
+type StringMatch struct {
+	Exact  string `json:"exact,omitempty"`
+	Prefix string `json:"prefix,omitempty"`
+	Regex  string `json:"regex,omitempty"`
 }
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
@@ -57,8 +63,8 @@ type HTTPMatchRequest struct {
 type VirtualEnvironmentSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
-	Http     []*HTTPRoute `json:"http,omitempty"`
-	Services []*Service   `json:"services,omitempty"`
+	Http     []HTTPRoute `json:"http,omitempty"`
+	Services []Service   `json:"services,omitempty"`
 }
 
 // VirtualEnvironmentStatus defines the observed state of VirtualEnvironment

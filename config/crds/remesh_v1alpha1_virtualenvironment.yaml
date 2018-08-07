@@ -40,6 +40,13 @@ spec:
                     items:
                       properties:
                         authority:
+                          properties:
+                            exact:
+                              type: string
+                            prefix:
+                              type: string
+                            regex:
+                              type: string
                           type: object
                         gateways:
                           items:
@@ -48,13 +55,34 @@ spec:
                         headers:
                           type: object
                         method:
+                          properties:
+                            exact:
+                              type: string
+                            prefix:
+                              type: string
+                            regex:
+                              type: string
                           type: object
                         port:
                           format: int32
                           type: integer
                         scheme:
+                          properties:
+                            exact:
+                              type: string
+                            prefix:
+                              type: string
+                            regex:
+                              type: string
                           type: object
                         uri:
+                          properties:
+                            exact:
+                              type: string
+                            prefix:
+                              type: string
+                            regex:
+                              type: string
                           type: object
                       type: object
                     type: array

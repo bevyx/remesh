@@ -1,51 +1,48 @@
 package resources
 
 import (
+	istioapi "github.com/bevyx/istio-api-go/pkg/apis/istio/v1alpha3"
 	api "github.com/bevyx/remesh/pkg/apis/remesh/v1alpha1"
-	knativeistio "github.com/knative/serving/pkg/apis/istio/v1alpha3"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
-func MakeIstioGateway(entrypoint api.Entrypoint, namespace string) (knativeistio.Gateway, string) {
-	istioServers := make([]knativeistio.Server, 0)
+func MakeIstioGateway(entrypoint api.Entrypoint, namespace string) (istioapi.Gateway, string) {
+	istioServers := make([]istioapi.Server, 0)
 
 	for _, server := range entrypoint.Spec.Servers {
-		var tls *knativeistio.TLSOptions
-		if server.Tls != nil {
-			tls = &knativeistio.TLSOptions{
+
+		istioServers = append(istioServers, istioapi.Server{
+			Port: istioapi.Port{
+				Name:     server.Port.Name,
+				Number:   server.Port.Number,
+				Protocol: server.Port.Protocol,
+			},
+			Hosts: server.Hosts,
+			Tls: istioapi.Server_TLSOptions{
 				HttpsRedirect:     server.Tls.HttpsRedirect,
-				Mode:              knativeistio.TLSMode(server.Tls.Mode),
+				Mode:              istioapi.Server_TLSOptions_TLSmode(server.Tls.Mode),
 				ServerCertificate: server.Tls.ServerCertificate,
 				PrivateKey:        server.Tls.PrivateKey,
 				CaCertificates:    server.Tls.CaCertificates,
 				SubjectAltNames:   server.Tls.SubjectAltNames,
-			}
-		}
-
-		istioServers = append(istioServers, knativeistio.Server{
-			Port: knativeistio.Port{
-				Name:     server.Port.Name,
-				Number:   int(server.Port.Number),
-				Protocol: knativeistio.PortProtocol(server.Port.Protocol)},
-			Hosts: server.Hosts,
-			TLS:   tls,
+			},
 		})
 	}
-	gatewaySpec := knativeistio.GatewaySpec{
+	gatewaySpec := istioapi.GatewaySpec{
 		Selector: map[string]string{"istio": "ingressgateway"},
 		Servers:  istioServers,
 	}
 
-	gatewayName := Prefix + entrypoint.ObjectMeta.Name
+	gatewayName := Prefix + entrypoint.Name + GatewaySuffix
 
 	gateway := makeGateway(gatewayName, gatewaySpec, entrypoint)
 
-	return *gateway, gatewayName
+	return gateway, gatewayName
 }
 
-func makeGateway(name string, gatewaySpec knativeistio.GatewaySpec, entrypoint api.Entrypoint) *knativeistio.Gateway {
-	return &knativeistio.Gateway{
+func makeGateway(name string, gatewaySpec istioapi.GatewaySpec, entrypoint api.Entrypoint) istioapi.Gateway {
+	return istioapi.Gateway{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Gateway",
 			APIVersion: "networking.istio.io/v1alpha3",

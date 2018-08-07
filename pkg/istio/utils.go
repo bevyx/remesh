@@ -8,13 +8,9 @@ import (
 	hashutil "k8s.io/kubernetes/pkg/util/hash"
 )
 
-func computeHash(service *map[string]string) string {
+func computeHash(service map[string]string) string {
 	serviceSubsetHasher := fnv.New32a()
-	hashutil.DeepHashObject(serviceSubsetHasher, *service)
+	hashutil.DeepHashObject(serviceSubsetHasher, service)
 
 	return rand.SafeEncodeString(fmt.Sprint(serviceSubsetHasher.Sum32()))
 }
-
-const (
-	Prefix = "remesh-"
-)

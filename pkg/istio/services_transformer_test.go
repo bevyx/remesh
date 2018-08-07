@@ -16,43 +16,43 @@ func TestTransformVirtualEnvironment(t *testing.T) {
 				Namespace: "default",
 			},
 			Spec: api.VirtualEnvironmentSpec{
-				Http: []*api.HTTPRoute{&api.HTTPRoute{
-					Match: []*api.HTTPMatchRequest{
-						&api.HTTPMatchRequest{
-							Uri: map[string]string{"exact": "/productpage"},
+				Http: []api.HTTPRoute{api.HTTPRoute{
+					Match: []api.HTTPMatchRequest{
+						api.HTTPMatchRequest{
+							Uri: api.StringMatch{Exact: "/productpage"},
 						},
-						&api.HTTPMatchRequest{
-							Uri: map[string]string{"exact": "/login"},
+						api.HTTPMatchRequest{
+							Uri: api.StringMatch{Exact: "/login"},
 						},
-						&api.HTTPMatchRequest{
-							Uri: map[string]string{"exact": "/logout"},
+						api.HTTPMatchRequest{
+							Uri: api.StringMatch{Exact: "/logout"},
 						},
-						&api.HTTPMatchRequest{
-							Uri: map[string]string{"prefix": "/api/v1/products"},
+						api.HTTPMatchRequest{
+							Uri: api.StringMatch{Prefix: "/api/v1/products"},
 						},
 					},
 					DestinationRoute: api.DestinationRoute{
 						Host: "productpage",
-						Port: &api.PortSelector{
+						Port: api.PortSelector{
 							Number: 9080,
 						},
 					},
 				}},
-				Services: []*api.Service{
-					&api.Service{
+				Services: []api.Service{
+					api.Service{
 						Host: "productpage",
 						Labels: map[string]string{
 							"version": "v1",
 							"stam":    "v1",
 						},
 					},
-					&api.Service{
+					api.Service{
 						Host: "reviews",
 						Labels: map[string]string{
 							"version": "v1",
 						},
 					},
-					&api.Service{
+					api.Service{
 						Host: "details",
 						Labels: map[string]string{
 							"version": "v1",
@@ -66,49 +66,49 @@ func TestTransformVirtualEnvironment(t *testing.T) {
 				Namespace: "default",
 			},
 			Spec: api.VirtualEnvironmentSpec{
-				Http: []*api.HTTPRoute{&api.HTTPRoute{
-					Match: []*api.HTTPMatchRequest{
-						&api.HTTPMatchRequest{
-							Uri: map[string]string{"exact": "/productpage"},
+				Http: []api.HTTPRoute{api.HTTPRoute{
+					Match: []api.HTTPMatchRequest{
+						api.HTTPMatchRequest{
+							Uri: api.StringMatch{Exact: "/productpage"},
 						},
-						&api.HTTPMatchRequest{
-							Uri: map[string]string{"exact": "/login"},
+						api.HTTPMatchRequest{
+							Uri: api.StringMatch{Exact: "/login"},
 						},
-						&api.HTTPMatchRequest{
-							Uri: map[string]string{"exact": "/logout"},
+						api.HTTPMatchRequest{
+							Uri: api.StringMatch{Exact: "/logout"},
 						},
-						&api.HTTPMatchRequest{
-							Uri: map[string]string{"prefix": "/api/v1/products"},
+						api.HTTPMatchRequest{
+							Uri: api.StringMatch{Prefix: "/api/v1/products"},
 						},
 					},
 					DestinationRoute: api.DestinationRoute{
 						Host: "productpage",
-						Port: &api.PortSelector{
+						Port: api.PortSelector{
 							Number: 9080,
 						},
 					},
 				}},
-				Services: []*api.Service{
-					&api.Service{
+				Services: []api.Service{
+					api.Service{
 						Host: "productpage",
 						Labels: map[string]string{
 							"stam":    "v1",
 							"version": "v1",
 						},
 					},
-					&api.Service{
+					api.Service{
 						Host: "reviews",
 						Labels: map[string]string{
 							"version": "v2",
 						},
 					},
-					&api.Service{
+					api.Service{
 						Host: "ratings",
 						Labels: map[string]string{
 							"version": "v1",
 						},
 					},
-					&api.Service{
+					api.Service{
 						Host: "details",
 						Labels: map[string]string{
 							"version": "v1",

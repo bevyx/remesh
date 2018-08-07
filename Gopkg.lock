@@ -8,6 +8,12 @@
   version = "v0.21.0"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/bevyx/istio-api-go"
+  packages = ["pkg/apis/istio/v1alpha3"]
+  revision = "0251b12dc4b8caa50c65b869b2bbb457e56ede95"
+
+[[projects]]
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
   revision = "346938d642f2ec3594ed81d874461961cd0faa76"
@@ -118,8 +124,8 @@
 [[projects]]
   name = "github.com/imdario/mergo"
   packages = ["."]
-  revision = "9316a62528ac99aaecb4e47eadd6dc8aa6533d58"
-  version = "v0.3.5"
+  revision = "9f23e2d6bd2a77f959b2bf6acdbefd708a83a4a4"
+  version = "v0.3.6"
 
 [[projects]]
   name = "github.com/inconshreveable/mousetrap"
@@ -138,15 +144,6 @@
   packages = ["."]
   revision = "ab8a2e0c74be9d3be70b3184d9acc634935ded82"
   version = "1.1.4"
-
-[[projects]]
-  name = "github.com/knative/serving"
-  packages = [
-    "pkg/apis/istio",
-    "pkg/apis/istio/v1alpha3"
-  ]
-  revision = "091d4519394bb7bee5ae4d3ab764c3f4f6f2a51b"
-  version = "v0.1.0"
 
 [[projects]]
   name = "github.com/markbates/inflect"
@@ -605,7 +602,7 @@
     "pkg/source",
     "pkg/source/internal"
   ]
-  revision = "a173375e85e58a79c8fc373ff550355509c6b599"
+  revision = "471f9cde2471949c85c01c3baba2947d9929c908"
 
 [[projects]]
   branch = "master"
@@ -619,7 +616,7 @@
     "pkg/internal/codegen/parse",
     "pkg/util"
   ]
-  revision = "4642040bdc8d31340218c0b36ae6c3779caad0b4"
+  revision = "ade554d58413a7b2327cf38fde98484e23e66c82"
 
 [[projects]]
   name = "sigs.k8s.io/testing_frameworks"
@@ -632,6 +629,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "1a8cf97c971381995cc0031abb4bffc2afe13c6e4c66664d18fa6b7c5d84ae04"
+  inputs-digest = "bfc99c1591f4fd687399e3601e6cf4dbe33c5161d7e8211fe11dac5c70f7cbeb"
   solver-name = "gps-cdcl"
   solver-version = 1

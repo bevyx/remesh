@@ -65,7 +65,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
-	// err = c.Watch(&source.Kind{Type: &knativeistio.Gateway{}}, &handler.EnqueueRequestForOwner{
+	// err = c.Watch(&source.Kind{Type: &istioapi.Gateway{}}, &handler.EnqueueRequestForOwner{
 	// 	IsController: true,
 	// 	OwnerType:    &remeshv1alpha1.Remesh{},
 	// })

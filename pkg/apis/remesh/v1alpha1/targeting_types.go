@@ -21,7 +21,7 @@ import (
 )
 
 type Segment struct {
-	HttpMatch []*HTTPMatchRequest `json:"httpMatch,omitempty"`
+	HttpMatch []HTTPMatchRequest `json:"httpMatch,omitempty"`
 }
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!

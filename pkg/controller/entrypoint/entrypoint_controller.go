@@ -20,7 +20,7 @@ import (
 	"context"
 
 	remeshv1alpha1 "github.com/bevyx/remesh/pkg/apis/remesh/v1alpha1"
-	// knativeistio "github.com/knative/serving/pkg/apis/istio/v1alpha3"
+	// istioapi "github.com/bevyx/istio-api-go/pkg/apis/istio/v1alpha3"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -57,7 +57,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	}
 
 	// Watch for changes to Gateway
-	// err = c.Watch(&source.Kind{Type: &knativeistio.Gateaway{}}, &handler.EnqueueRequestForOwner{
+	// err = c.Watch(&source.Kind{Type: &istioapi.Gateaway{}}, &handler.EnqueueRequestForOwner{
 	// 	IsController: true,
 	// 	OwnerType:    &remeshv1alpha1.Entrypoint{},
 	// })
@@ -101,7 +101,7 @@ func (r *ReconcileEntrypoint) Reconcile(request reconcile.Request) (reconcile.Re
 	// }
 
 	// // Check if the Deployment already exists
-	// found := &knativeistio.Gateway{}
+	// found := &istioapi.Gateway{}
 	// err = r.Get(context.TODO(), types.NamespacedName{Name: gatewayName, Namespace: gateway.Namespace}, found)
 	// if err != nil && errors.IsNotFound(err) {
 	// 	log.Printf("Creating Gateaway %s/%s\n", gateway.Namespace, gatewayName)
