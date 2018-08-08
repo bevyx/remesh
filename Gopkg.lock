@@ -76,6 +76,18 @@
   version = "v1.1.0"
 
 [[projects]]
+  name = "github.com/google/go-cmp"
+  packages = [
+    "cmp",
+    "cmp/cmpopts",
+    "cmp/internal/diff",
+    "cmp/internal/function",
+    "cmp/internal/value"
+  ]
+  revision = "3af367b6b30c263d47e8895973edcca9a49cf029"
+  version = "v0.2.0"
+
+[[projects]]
   name = "github.com/google/gofuzz"
   packages = ["."]
   revision = "24818f796faf91cd76ec7bddd72458fbced7a6c1"
@@ -140,10 +152,24 @@
   version = "1.1.4"
 
 [[projects]]
+  name = "github.com/knative/build"
+  packages = [
+    "pkg/apis/build",
+    "pkg/apis/build/v1alpha1"
+  ]
+  revision = "5c1d8c8469d1ed34b2aecf4c2305b3a57fff2ee3"
+
+[[projects]]
   name = "github.com/knative/serving"
   packages = [
     "pkg/apis/istio",
-    "pkg/apis/istio/v1alpha3"
+    "pkg/apis/istio/v1alpha3",
+    "pkg/apis/serving",
+    "pkg/apis/serving/v1alpha1",
+    "pkg/client/clientset/versioned",
+    "pkg/client/clientset/versioned/scheme",
+    "pkg/client/clientset/versioned/typed/istio/v1alpha3",
+    "pkg/client/clientset/versioned/typed/serving/v1alpha1"
   ]
   revision = "091d4519394bb7bee5ae4d3ab764c3f4f6f2a51b"
   version = "v0.1.0"
@@ -433,6 +459,7 @@
 [[projects]]
   name = "k8s.io/apimachinery"
   packages = [
+    "pkg/api/equality",
     "pkg/api/errors",
     "pkg/api/meta",
     "pkg/api/resource",
@@ -632,6 +659,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "1a8cf97c971381995cc0031abb4bffc2afe13c6e4c66664d18fa6b7c5d84ae04"
+  inputs-digest = "b30a56aa2fbd250563b4de07720285ae9e1f9dcc197bb67baad2cacaa0af524f"
   solver-name = "gps-cdcl"
   solver-version = 1
