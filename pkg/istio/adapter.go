@@ -4,6 +4,7 @@ import (
 	"log"
 
 	istioapi "github.com/bevyx/istio-api-go/pkg/apis/networking/v1alpha3"
+	istioapiclient "github.com/bevyx/istio-api-go/pkg/client/clientset/versioned"
 	"github.com/bevyx/remesh/pkg/istio/resources"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -11,8 +12,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 
 	"github.com/bevyx/remesh/pkg/models"
-	knativeistio "github.com/knative/serving/pkg/apis/istio/v1alpha3"
-	knativeistioclient "github.com/knative/serving/pkg/client/clientset/versioned"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 )
 
@@ -38,15 +37,15 @@ func Apply(entrypointFlow models.EntrypointFlow, namespace string) {
 		actualGatewaysObj[i] = runtime.Object(&x)
 	}
 	gatewaysToDeleteObj := triageDelete(desiredGatewaysObj, actualGatewaysObj)
-	gatewaysToDelete := make([]knativeistio.Gateway, len(gatewaysToDeleteObj))
+	gatewaysToDelete := make([]istioapi.Gateway, len(gatewaysToDeleteObj))
 	for i, x := range gatewaysToDeleteObj {
-		gatewaysToDelete[i] = *x.(*knativeistio.Gateway)
+		gatewaysToDelete[i] = *x.(*istioapi.Gateway)
 	}
 	deleteGateways(gatewaysToDelete)
 	gatewaysToCreateObj := triageCreate(desiredGatewaysObj, actualGatewaysObj)
-	gatewaysToCreate := make([]knativeistio.Gateway, len(gatewaysToCreateObj))
+	gatewaysToCreate := make([]istioapi.Gateway, len(gatewaysToCreateObj))
 	for i, x := range gatewaysToCreateObj {
-		gatewaysToCreate[i] = *x.(*knativeistio.Gateway)
+		gatewaysToCreate[i] = *x.(*istioapi.Gateway)
 	}
 	createGateways(gatewaysToCreate)
 
@@ -60,57 +59,57 @@ func Apply(entrypointFlow models.EntrypointFlow, namespace string) {
 		actualVirtualServicesObj[i] = runtime.Object(&x)
 	}
 	virtualServicesToDeleteObj := triageDelete(desiredVirtualServicesObj, actualVirtualServicesObj)
-	virtualServicesToDelete := make([]knativeistio.VirtualService, len(virtualServicesToDeleteObj))
+	virtualServicesToDelete := make([]istioapi.VirtualService, len(virtualServicesToDeleteObj))
 	for i, x := range virtualServicesToDeleteObj {
-		virtualServicesToDelete[i] = *x.(*knativeistio.VirtualService)
+		virtualServicesToDelete[i] = *x.(*istioapi.VirtualService)
 	}
 	deleteVirtualServices(virtualServicesToDelete)
 	virtualServicesToCreateObj := triageCreate(desiredVirtualServicesObj, actualVirtualServicesObj)
-	virtualServicesToCreate := make([]knativeistio.VirtualService, len(virtualServicesToCreateObj))
+	virtualServicesToCreate := make([]istioapi.VirtualService, len(virtualServicesToCreateObj))
 	for i, x := range virtualServicesToCreateObj {
-		virtualServicesToCreate[i] = *x.(*knativeistio.VirtualService)
+		virtualServicesToCreate[i] = *x.(*istioapi.VirtualService)
 	}
 	createVirtualServices(virtualServicesToCreate)
 }
 
-func deleteGateways(gateways []knativeistio.Gateway) {
+func deleteGateways(gateways []istioapi.Gateway) {
 	cfg := config.GetConfigOrDie() //TODO: inject?
-	knativeistioclientset := knativeistioclient.NewForConfigOrDie(cfg)
+	istioclientset := istioapiclient.NewForConfigOrDie(cfg)
 	for _, x := range gateways {
-		err := knativeistioclientset.NetworkingV1alpha3().Gateways(x.ObjectMeta.GetNamespace()).Delete(x.ObjectMeta.GetName(), nil)
+		err := istioclientset.NetworkingV1alpha3().Gateways(x.ObjectMeta.GetNamespace()).Delete(x.ObjectMeta.GetName(), nil)
 		if err != nil {
 			log.Printf("error deleting %s/%s :  %v", x.ObjectMeta.GetNamespace(), x.ObjectMeta.GetName(), err)
 		}
 	}
 }
 
-func createGateways(gateways []knativeistio.Gateway) {
+func createGateways(gateways []istioapi.Gateway) {
 	cfg := config.GetConfigOrDie() //TODO: inject?
-	knativeistioclientset := knativeistioclient.NewForConfigOrDie(cfg)
+	istioclientset := istioapiclient.NewForConfigOrDie(cfg)
 	for _, x := range gateways {
-		_, err := knativeistioclientset.NetworkingV1alpha3().Gateways(x.ObjectMeta.GetNamespace()).Create(&x)
+		_, err := istioclientset.NetworkingV1alpha3().Gateways(x.ObjectMeta.GetNamespace()).Create(&x)
 		if err != nil {
 			log.Printf("error creating %s/%s :  %v", x.ObjectMeta.GetNamespace(), x.ObjectMeta.GetName(), err)
 		}
 	}
 }
 
-func deleteVirtualServices(virtualServices []knativeistio.VirtualService) {
+func deleteVirtualServices(virtualServices []istioapi.VirtualService) {
 	cfg := config.GetConfigOrDie() //TODO: inject?
-	knativeistioclientset := knativeistioclient.NewForConfigOrDie(cfg)
+	istioclientset := istioapiclient.NewForConfigOrDie(cfg)
 	for _, x := range virtualServices {
-		err := knativeistioclientset.NetworkingV1alpha3().VirtualServices(x.ObjectMeta.GetNamespace()).Delete(x.ObjectMeta.GetName(), nil)
+		err := istioclientset.NetworkingV1alpha3().VirtualServices(x.ObjectMeta.GetNamespace()).Delete(x.ObjectMeta.GetName(), nil)
 		if err != nil {
 			log.Printf("error deleting %s/%s :  %v", x.ObjectMeta.GetNamespace(), x.ObjectMeta.GetName(), err)
 		}
 	}
 }
 
-func createVirtualServices(virtualServices []knativeistio.VirtualService) {
+func createVirtualServices(virtualServices []istioapi.VirtualService) {
 	cfg := config.GetConfigOrDie() //TODO: inject?
-	knativeistioclientset := knativeistioclient.NewForConfigOrDie(cfg)
+	istioclientset := istioapiclient.NewForConfigOrDie(cfg)
 	for _, x := range virtualServices {
-		_, err := knativeistioclientset.NetworkingV1alpha3().VirtualServices(x.ObjectMeta.GetNamespace()).Create(&x)
+		_, err := istioclientset.NetworkingV1alpha3().VirtualServices(x.ObjectMeta.GetNamespace()).Create(&x)
 		if err != nil {
 			log.Printf("error deleting %s/%s :  %v", x.ObjectMeta.GetNamespace(), x.ObjectMeta.GetName(), err)
 		}
@@ -147,7 +146,7 @@ Outer:
 	return res
 }
 
-func getDesiredResources(entrypointFlow models.EntrypointFlow) (gateways []knativeistio.Gateway, virtualServices []knativeistio.VirtualService) {
+func getDesiredResources(entrypointFlow models.EntrypointFlow) (gateways []istioapi.Gateway, virtualServices []istioapi.VirtualService) {
 	gateways = make([]istioapi.Gateway, 0)
 	virtualServices = make([]istioapi.VirtualService, 0)
 	destinationRules = make([]istioapi.DestinationRule, 0)
@@ -170,12 +169,12 @@ func getDesiredResources(entrypointFlow models.EntrypointFlow) (gateways []knati
 
 }
 
-func getActualResources(namespace string) ([]knativeistio.Gateway, []knativeistio.VirtualService) {
+func getActualResources(namespace string) ([]istioapi.Gateway, []istioapi.VirtualService) {
 
 	// TODO: check why kube-controller's (controller-runtime's) client didn't work
 
-	// gatewayList := knativeistio.GatewayList{}
-	// virtualServiceList := knativeistio.VirtualServiceList{}
+	// gatewayList := istioapi.GatewayList{}
+	// virtualServiceList := istioapi.VirtualServiceList{}
 	// destinationRuleList := istioapi.DestinationRuleList{}
 
 	// err = client.List(context.TODO(), nil, &gatewayList)
@@ -192,12 +191,12 @@ func getActualResources(namespace string) ([]knativeistio.Gateway, []knativeisti
 	// }
 
 	cfg := config.GetConfigOrDie() //TODO: inject?
-	knativeistioclientset := knativeistioclient.NewForConfigOrDie(cfg)
-	gatewayList, err := knativeistioclientset.NetworkingV1alpha3().Gateways(namespace).List(metav1.ListOptions{})
+	istioclientset := istioapiclient.NewForConfigOrDie(cfg)
+	gatewayList, err := istioclientset.NetworkingV1alpha3().Gateways(namespace).List(metav1.ListOptions{})
 	if err != nil {
 		log.Fatal(err)
 	}
-	virtualServiceList, err := knativeistioclientset.NetworkingV1alpha3().VirtualServices(namespace).List(metav1.ListOptions{})
+	virtualServiceList, err := istioclientset.NetworkingV1alpha3().VirtualServices(namespace).List(metav1.ListOptions{})
 	if err != nil {
 		log.Fatal(err)
 	}

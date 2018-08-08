@@ -6,13 +6,13 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 
-	knativeistio "github.com/knative/serving/pkg/apis/istio/v1alpha3"
+	istioapi "github.com/bevyx/istio-api-go/pkg/apis/networking/v1alpha3"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
 var (
-	gw1 = knativeistio.Gateway{
+	gw1 = istioapi.Gateway{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Gateway",
 			APIVersion: "networking.istio.io/v1alpha3",
@@ -21,15 +21,15 @@ var (
 			Name:      "gw1",
 			Namespace: "ns1",
 		},
-		Spec: knativeistio.GatewaySpec{
+		Spec: istioapi.GatewaySpec{
 			Selector: map[string]string{
 				"istio": "ingressgateway",
 			},
-			Servers: []knativeistio.Server{
-				knativeistio.Server{
-					Port: knativeistio.Port{
+			Servers: []istioapi.Server{
+				istioapi.Server{
+					Port: istioapi.Port{
 						Number:   8080,
-						Protocol: knativeistio.PortProtocol("HTTP"),
+						Protocol: istioapi.PortProtocol("HTTP"),
 						Name:     "http",
 					},
 					Hosts: []string{
@@ -39,7 +39,7 @@ var (
 			},
 		},
 	}
-	gw2 = knativeistio.Gateway{
+	gw2 = istioapi.Gateway{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Gateway",
 			APIVersion: "networking.istio.io/v1alpha3",
@@ -48,15 +48,15 @@ var (
 			Name:      "gw2",
 			Namespace: "ns1",
 		},
-		Spec: knativeistio.GatewaySpec{
+		Spec: istioapi.GatewaySpec{
 			Selector: map[string]string{
 				"istio": "ingressgateway",
 			},
-			Servers: []knativeistio.Server{
-				knativeistio.Server{
-					Port: knativeistio.Port{
+			Servers: []istioapi.Server{
+				istioapi.Server{
+					Port: istioapi.Port{
 						Number:   8080,
-						Protocol: knativeistio.PortProtocol("HTTP"),
+						Protocol: istioapi.PortProtocol("HTTP"),
 						Name:     "http",
 					},
 					Hosts: []string{
@@ -66,7 +66,7 @@ var (
 			},
 		},
 	}
-	gw3 = knativeistio.Gateway{
+	gw3 = istioapi.Gateway{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Gateway",
 			APIVersion: "networking.istio.io/v1alpha3",
@@ -75,15 +75,15 @@ var (
 			Name:      "gw3",
 			Namespace: "ns1",
 		},
-		Spec: knativeistio.GatewaySpec{
+		Spec: istioapi.GatewaySpec{
 			Selector: map[string]string{
 				"istio": "anothergateway",
 			},
-			Servers: []knativeistio.Server{
-				knativeistio.Server{
-					Port: knativeistio.Port{
+			Servers: []istioapi.Server{
+				istioapi.Server{
+					Port: istioapi.Port{
 						Number:   8080,
-						Protocol: knativeistio.PortProtocol("HTTP"),
+						Protocol: istioapi.PortProtocol("HTTP"),
 						Name:     "http",
 					},
 					Hosts: []string{
@@ -96,10 +96,10 @@ var (
 )
 
 func TestToDelete(t *testing.T) {
-	existing := []knativeistio.Gateway{
+	existing := []istioapi.Gateway{
 		*gw1.DeepCopy(),
 	}
-	desired := []knativeistio.Gateway{
+	desired := []istioapi.Gateway{
 		*gw1.DeepCopy(),
 	}
 	existingObj := make([]runtime.Object, len(existing))
@@ -118,11 +118,11 @@ func TestToDelete(t *testing.T) {
 
 	// --------------------
 
-	existing = []knativeistio.Gateway{
+	existing = []istioapi.Gateway{
 		*gw1.DeepCopy(),
 	}
 	existing[0].Name = "another"
-	desired = []knativeistio.Gateway{
+	desired = []istioapi.Gateway{
 		*gw1.DeepCopy(),
 	}
 	existingObj = make([]runtime.Object, len(existing))
@@ -144,10 +144,10 @@ func TestToDelete(t *testing.T) {
 }
 
 func TestToCreate(t *testing.T) {
-	existing := []knativeistio.Gateway{
+	existing := []istioapi.Gateway{
 		*gw1.DeepCopy(),
 	}
-	desired := []knativeistio.Gateway{
+	desired := []istioapi.Gateway{
 		*gw1.DeepCopy(),
 	}
 	existingObj := make([]runtime.Object, len(existing))
@@ -166,11 +166,11 @@ func TestToCreate(t *testing.T) {
 
 	// --------------------
 
-	existing = []knativeistio.Gateway{
+	existing = []istioapi.Gateway{
 		*gw1.DeepCopy(),
 	}
 	existing[0].Name = "another"
-	desired = []knativeistio.Gateway{
+	desired = []istioapi.Gateway{
 		*gw1.DeepCopy(),
 	}
 	existingObj = make([]runtime.Object, len(existing))

@@ -103,7 +103,7 @@ func (r *ReconcileRemesh) Reconcile(request reconcile.Request) (reconcile.Result
 
 func (r *ReconcileRemesh) fetchRemeshResources(request reconcile.Request) (virtualEnvironmentList remeshv1alpha1.VirtualEnvironmentList, targetingList remeshv1alpha1.TargetingList, entrypointList remeshv1alpha1.EntrypointList, err error) {
 	options := client.ListOptions{
-	// 	//LabelSelector: ,
+		// 	//LabelSelector: ,
 	}
 	entrypointList = remeshv1alpha1.EntrypointList{}
 	virtualEnvironmentList = remeshv1alpha1.VirtualEnvironmentList{}
