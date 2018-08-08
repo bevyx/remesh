@@ -207,7 +207,7 @@ version="kubernetes-1.10.1"
 
 [[override]]
 name="k8s.io/code-generator"
-revision="7b3961072db196a1068e97f76c74ca6bc6b65350"
+version="kubernetes-1.10.0"
 
 [[override]]
 name="k8s.io/gengo"

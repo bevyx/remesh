@@ -29,7 +29,7 @@ var (
 				istioapi.Server{
 					Port: istioapi.Port{
 						Number:   8080,
-						Protocol: istioapi.PortProtocol("HTTP"),
+						Protocol: "HTTP",
 						Name:     "http",
 					},
 					Hosts: []string{
@@ -56,7 +56,7 @@ var (
 				istioapi.Server{
 					Port: istioapi.Port{
 						Number:   8080,
-						Protocol: istioapi.PortProtocol("HTTP"),
+						Protocol: "HTTP",
 						Name:     "http",
 					},
 					Hosts: []string{
@@ -83,7 +83,7 @@ var (
 				istioapi.Server{
 					Port: istioapi.Port{
 						Number:   8080,
-						Protocol: istioapi.PortProtocol("HTTP"),
+						Protocol: "HTTP",
 						Name:     "http",
 					},
 					Hosts: []string{
@@ -192,6 +192,6 @@ func TestToCreate(t *testing.T) {
 }
 
 func TestGetActualResources(t *testing.T) {
-	gateways, virtualServices := getActualResources("istio-system")
-	spew.Dump(gateways, virtualServices)
+	gateways, virtualServices, destinationRules := getActualResources("istio-system")
+	spew.Dump(gateways, virtualServices, destinationRules)
 }

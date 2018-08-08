@@ -16,7 +16,7 @@
     "pkg/client/clientset/versioned/scheme",
     "pkg/client/clientset/versioned/typed/networking/v1alpha3"
   ]
-  revision = "3a34a028616badfce71dd520340af8a67d79b325"
+  revision = "aafe35f68254153ea8217e63e51c356fa60098a1"
 
 [[projects]]
   name = "github.com/davecgh/go-spew"
@@ -554,7 +554,8 @@
     "cmd/deepcopy-gen/args",
     "pkg/util"
   ]
-  revision = "7b3961072db196a1068e97f76c74ca6bc6b65350"
+  revision = "7ead8f38b01cf8653249f5af80ce7b2c8aba12e2"
+  version = "kubernetes-1.10.0"
 
 [[projects]]
   name = "k8s.io/gengo"
@@ -634,6 +635,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "b93c8fb401765fa5c2b34537b034806729902f30bd9d5048881861bd3ccb0e92"
+  inputs-digest = "250bb2a68a72878e2c2b05b75faa680114d151fd463e092be4763e8da0ec3e3a"
   solver-name = "gps-cdcl"
   solver-version = 1

@@ -61,7 +61,7 @@ func (c *FakeServiceEntries) List(opts v1.ListOptions) (result *v1alpha3.Service
 	if label == nil {
 		label = labels.Everything()
 	}
-	list := &v1alpha3.ServiceEntryList{ListMeta: obj.(*v1alpha3.ServiceEntryList).ListMeta}
+	list := &v1alpha3.ServiceEntryList{}
 	for _, item := range obj.(*v1alpha3.ServiceEntryList).Items {
 		if label.Matches(labels.Set(item.Labels)) {
 			list.Items = append(list.Items, item)

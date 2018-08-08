@@ -61,7 +61,7 @@ func (c *FakeEnvoyFilters) List(opts v1.ListOptions) (result *v1alpha3.EnvoyFilt
 	if label == nil {
 		label = labels.Everything()
 	}
-	list := &v1alpha3.EnvoyFilterList{ListMeta: obj.(*v1alpha3.EnvoyFilterList).ListMeta}
+	list := &v1alpha3.EnvoyFilterList{}
 	for _, item := range obj.(*v1alpha3.EnvoyFilterList).Items {
 		if label.Matches(labels.Set(item.Labels)) {
 			list.Items = append(list.Items, item)

@@ -94,9 +94,9 @@ func (r *ReconcileRemesh) Reconcile(request reconcile.Request) (reconcile.Result
 	if err != nil {
 		return reconcile.Result{}, err
 	}
-	//TODO: entrypointFlows (plural)?
-	entrypointFlow := remesh.Combine(virtualEnvironmentList, targetingList, entrypointList)
-	istio.Apply(entrypointFlow, request.Namespace)
+
+	entrypointFlows := remesh.Combine(virtualEnvironmentList, targetingList, entrypointList)
+	istio.Apply(entrypointFlows, request.Namespace)
 
 	return reconcile.Result{}, nil
 }

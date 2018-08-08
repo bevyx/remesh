@@ -46,12 +46,6 @@
   version = "v1.1.0"
 
 [[projects]]
-  branch = "master"
-  name = "github.com/google/btree"
-  packages = ["."]
-  revision = "e89373fe6b4a7413d7acd6da1725b83ef713e6e4"
-
-[[projects]]
   name = "github.com/google/gofuzz"
   packages = ["."]
   revision = "24818f796faf91cd76ec7bddd72458fbced7a6c1"
@@ -65,15 +59,6 @@
   ]
   revision = "ee43cbb60db7bd22502942cccbc39059117352ab"
   version = "v0.1.0"
-
-[[projects]]
-  branch = "master"
-  name = "github.com/gregjones/httpcache"
-  packages = [
-    ".",
-    "diskcache"
-  ]
-  revision = "9cad4c3443a7200dd6400aef47183728de563a38"
 
 [[projects]]
   name = "github.com/hashicorp/golang-lru"
@@ -118,18 +103,6 @@
   packages = ["."]
   revision = "4b7aa43c6742a2c18fdef89dd197aaae7dac7ccd"
   version = "1.0.1"
-
-[[projects]]
-  branch = "master"
-  name = "github.com/petar/GoLLRB"
-  packages = ["llrb"]
-  revision = "53be0d36a84c2a886ca057d34b6aa4468df9ccb4"
-
-[[projects]]
-  name = "github.com/peterbourgon/diskv"
-  packages = ["."]
-  revision = "5f041e8faa004a95c88a202771f4cc3e991971e6"
-  version = "v2.0.1"
 
 [[projects]]
   name = "github.com/pkg/errors"
@@ -248,14 +221,13 @@
     "rbac/v1alpha1",
     "rbac/v1beta1",
     "scheduling/v1alpha1",
-    "scheduling/v1beta1",
     "settings/v1alpha1",
     "storage/v1",
     "storage/v1alpha1",
     "storage/v1beta1"
   ]
-  revision = "2d6f90ab1293a1fb871cf149423ebb72aa7423aa"
-  version = "kubernetes-1.11.1"
+  revision = "73d903622b7391f3312dcbac6483fed484e185f8"
+  version = "kubernetes-1.10.0"
 
 [[projects]]
   name = "k8s.io/apiextensions-apiserver"
@@ -263,8 +235,8 @@
     "pkg/apis/apiextensions",
     "pkg/apis/apiextensions/v1beta1"
   ]
-  revision = "408db4a50408e2149acbd657bceb2480c13cb0a4"
-  version = "kubernetes-1.11.2"
+  revision = "4347b330d0ff094db860f2f75fa725b4f4b53618"
+  version = "kubernetes-1.10.1"
 
 [[projects]]
   name = "k8s.io/apimachinery"
@@ -297,25 +269,21 @@
     "pkg/util/framer",
     "pkg/util/intstr",
     "pkg/util/json",
-    "pkg/util/mergepatch",
     "pkg/util/net",
     "pkg/util/runtime",
     "pkg/util/sets",
-    "pkg/util/strategicpatch",
     "pkg/util/validation",
     "pkg/util/validation/field",
     "pkg/util/wait",
     "pkg/util/yaml",
     "pkg/version",
     "pkg/watch",
-    "third_party/forked/golang/json",
     "third_party/forked/golang/reflect"
   ]
-  revision = "103fd098999dc9c0c88536f5c9ad2e5da39373ae"
-  version = "kubernetes-1.11.0"
+  revision = "302974c03f7e50f16561ba237db776ab93594ef6"
+  version = "kubernetes-1.10.0"
 
 [[projects]]
-  branch = "release-8.0"
   name = "k8s.io/client-go"
   packages = [
     "discovery",
@@ -323,7 +291,6 @@
     "kubernetes/scheme",
     "pkg/apis/clientauthentication",
     "pkg/apis/clientauthentication/v1alpha1",
-    "pkg/apis/clientauthentication/v1beta1",
     "pkg/version",
     "plugin/pkg/client/auth/exec",
     "rest",
@@ -336,12 +303,12 @@
     "transport",
     "util/buffer",
     "util/cert",
-    "util/connrotation",
     "util/flowcontrol",
     "util/integer",
     "util/retry"
   ]
-  revision = "1f13a808da65775f22cbf47862c4e5898d8f4ca1"
+  revision = "989be4278f353e42f26c416c53757d16fcff77db"
+  version = "kubernetes-1.10.1"
 
 [[projects]]
   name = "k8s.io/code-generator"
@@ -364,7 +331,8 @@
     "cmd/lister-gen/generators",
     "pkg/util"
   ]
-  revision = "7b3961072db196a1068e97f76c74ca6bc6b65350"
+  revision = "7ead8f38b01cf8653249f5af80ce7b2c8aba12e2"
+  version = "kubernetes-1.10.0"
 
 [[projects]]
   name = "k8s.io/gengo"
@@ -378,11 +346,6 @@
     "types"
   ]
   revision = "906d99f89cd644eecf75ab547b29bf9f876f0b59"
-
-[[projects]]
-  name = "k8s.io/kube-openapi"
-  packages = ["pkg/util/proto"]
-  revision = "f08db293d3ef80052d6513ece19792642a289fea"
 
 [[projects]]
   branch = "master"
@@ -407,6 +370,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "a8b43efbba1cade66c91f48b56ddd4028f6f1956759049fa875ae65e2a9f3db0"
+  inputs-digest = "3ac42292c3b1bc5f3221723b58d2b592d86ba8ab12aa2f65d60f28c6bc6f3b69"
   solver-name = "gps-cdcl"
   solver-version = 1
