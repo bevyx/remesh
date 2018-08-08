@@ -141,7 +141,7 @@ func createVirtualServices(virtualServices []istioapi.VirtualService) {
 	for _, x := range virtualServices {
 		_, err := istioclientset.NetworkingV1alpha3().VirtualServices(x.ObjectMeta.GetNamespace()).Create(&x)
 		if err != nil {
-			log.Printf("error deleting %s/%s :  %v", x.ObjectMeta.GetNamespace(), x.ObjectMeta.GetName(), err)
+			log.Printf("error create %s/%s :  %v", x.ObjectMeta.GetNamespace(), x.ObjectMeta.GetName(), err)
 		}
 	}
 }
@@ -163,56 +163,34 @@ func createDestinationRules(destinationRules []istioapi.DestinationRule) {
 	for _, x := range destinationRules {
 		_, err := istioclientset.NetworkingV1alpha3().DestinationRules(x.ObjectMeta.GetNamespace()).Create(&x)
 		if err != nil {
-			log.Printf("error deleting %s/%s :  %v", x.ObjectMeta.GetNamespace(), x.ObjectMeta.GetName(), err)
+			log.Printf("error create %s/%s :  %v", x.ObjectMeta.GetNamespace(), x.ObjectMeta.GetName(), err)
 		}
 	}
 }
 
 func triageDelete(existing []runtime.Object, desired []runtime.Object) (res []runtime.Object) {
-Outer:
 	for _, e := range existing {
-		for _, d := range desired {
-			eAccessor, _ := meta.Accessor(e)
-			dAccessor, _ := meta.Accessor(d)
-			if eAccessor.GetName() == dAccessor.GetName() {
-				continue Outer
-			}
+		if !objectExists(e, desired) {
+			res = append(res, e)
 		}
-		res = append(res, e)
 	}
 	return res
 }
 
-// func triageCreate(existing []runtime.Object, desired []runtime.Object) (res []runtime.Object) {
-// Outer:
-// 	for _, d := range desired {
-// 		for _, e := range existing {
-// 			eAccessor, _ := meta.Accessor(e)
-// 			dAccessor, _ := meta.Accessor(d)
-// 			if eAccessor.GetName() == dAccessor.GetName() {
-// 				continue Outer
-// 			}
-// 		}
-// 		res = append(res, d)
-// 	}
-// 	return res
-// }
-
 func triageCreate(existing []runtime.Object, desired []runtime.Object) (res []runtime.Object) {
 	for _, d := range desired {
-		if !desiredExists(d, existing) {
+		if !objectExists(d, existing) {
 			res = append(res, d)
 		}
 	}
 	return res
 }
 
-func desiredExists(desired runtime.Object, existing []runtime.Object) bool {
-	for _, e := range existing {
-		eAccessor, _ := meta.Accessor(e)
-		dAccessor, _ := meta.Accessor(desired)
-		log.Printf("existing: %s, desired: %s", eAccessor.GetName(), dAccessor.GetName())
-		if eAccessor.GetName() == dAccessor.GetName() {
+func objectExists(obj runtime.Object, list []runtime.Object) bool {
+	for _, i := range list {
+		iAccessor, _ := meta.Accessor(i)
+		objAccessor, _ := meta.Accessor(obj)
+		if iAccessor.GetName() == objAccessor.GetName() {
 			return true
 		}
 	}
