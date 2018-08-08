@@ -82,6 +82,18 @@
   version = "v1.1.0"
 
 [[projects]]
+  name = "github.com/google/go-cmp"
+  packages = [
+    "cmp",
+    "cmp/cmpopts",
+    "cmp/internal/diff",
+    "cmp/internal/function",
+    "cmp/internal/value"
+  ]
+  revision = "3af367b6b30c263d47e8895973edcca9a49cf029"
+  version = "v0.2.0"
+
+[[projects]]
   name = "github.com/google/gofuzz"
   packages = ["."]
   revision = "24818f796faf91cd76ec7bddd72458fbced7a6c1"
@@ -146,6 +158,32 @@
   version = "1.1.4"
 
 [[projects]]
+<<<<<<< HEAD
+=======
+  name = "github.com/knative/build"
+  packages = [
+    "pkg/apis/build",
+    "pkg/apis/build/v1alpha1"
+  ]
+  revision = "5c1d8c8469d1ed34b2aecf4c2305b3a57fff2ee3"
+
+[[projects]]
+  name = "github.com/knative/serving"
+  packages = [
+    "pkg/apis/istio",
+    "pkg/apis/istio/v1alpha3",
+    "pkg/apis/serving",
+    "pkg/apis/serving/v1alpha1",
+    "pkg/client/clientset/versioned",
+    "pkg/client/clientset/versioned/scheme",
+    "pkg/client/clientset/versioned/typed/istio/v1alpha3",
+    "pkg/client/clientset/versioned/typed/serving/v1alpha1"
+  ]
+  revision = "091d4519394bb7bee5ae4d3ab764c3f4f6f2a51b"
+  version = "v0.1.0"
+
+[[projects]]
+>>>>>>> apply
   name = "github.com/markbates/inflect"
   packages = ["."]
   revision = "dd7de90c06bca70f18136e59dec2270c19a401e7"
@@ -430,6 +468,7 @@
 [[projects]]
   name = "k8s.io/apimachinery"
   packages = [
+    "pkg/api/equality",
     "pkg/api/errors",
     "pkg/api/meta",
     "pkg/api/resource",
@@ -629,6 +668,10 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
+<<<<<<< HEAD
   inputs-digest = "550c1ab1b0687da4c561b208ca0c9acf6e9c2f3cb3ae50fd9b59d64cf92184ba"
+=======
+  inputs-digest = "b30a56aa2fbd250563b4de07720285ae9e1f9dcc197bb67baad2cacaa0af524f"
+>>>>>>> apply
   solver-name = "gps-cdcl"
   solver-version = 1

@@ -94,15 +94,16 @@ func (r *ReconcileRemesh) Reconcile(request reconcile.Request) (reconcile.Result
 	if err != nil {
 		return reconcile.Result{}, err
 	}
-	entrypointFlows := remesh.Combine(virtualEnvironmentList, targetingList, entrypointList)
-	istio.Apply(entrypointFlows, request.Namespace)
+	//TODO: entrypointFlows (plural)?
+	entrypointFlow := remesh.Combine(virtualEnvironmentList, targetingList, entrypointList)
+	istio.Apply(entrypointFlow, request.Namespace)
 
 	return reconcile.Result{}, nil
 }
 
 func (r *ReconcileRemesh) fetchRemeshResources(request reconcile.Request) (virtualEnvironmentList remeshv1alpha1.VirtualEnvironmentList, targetingList remeshv1alpha1.TargetingList, entrypointList remeshv1alpha1.EntrypointList, err error) {
 	options := client.ListOptions{
-		// 	//LabelSelector: ,
+	// 	//LabelSelector: ,
 	}
 	entrypointList = remeshv1alpha1.EntrypointList{}
 	virtualEnvironmentList = remeshv1alpha1.VirtualEnvironmentList{}
@@ -123,5 +124,6 @@ func (r *ReconcileRemesh) fetchRemeshResources(request reconcile.Request) (virtu
 		log.Printf("missing Targetings %v", err)
 		//it's ok to not have targetings
 	}
+	log.Printf("fetched remesh resources: %d entrypoint, %d virtualservices, %d targetings", len(entrypointList.Items), len(virtualEnvironmentList.Items), len(targetingList.Items))
 	return
 }
