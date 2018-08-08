@@ -1,9 +1,0 @@
-apiVersion: remesh.bevyx.com/v1alpha1
-kind: Entrypoint
-metadata:
-  labels:
-    controller-tools.k8s.io: "1.0"
-  name: entrypoint-sample
-spec:
-  # Add fields here
-  foo: bar

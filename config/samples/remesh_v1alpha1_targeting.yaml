@@ -1,9 +1,0 @@
-apiVersion: remesh.bevyx.com/v1alpha1
-kind: Targeting
-metadata:
-  labels:
-    controller-tools.k8s.io: "1.0"
-  name: targeting-sample
-spec:
-  # Add fields here
-  foo: bar

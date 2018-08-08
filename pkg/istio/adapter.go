@@ -18,7 +18,9 @@ import (
 func Apply(entrypointFlows []models.EntrypointFlow, namespace string) {
 	log.Printf("applying %d entrypointFlows", len(entrypointFlows))
 	desiredGateways, desiredVirtualServices, desiredDestinationRules := getDesiredResources(entrypointFlows, namespace)
+	log.Printf("desired: gateways %d, virtualservices: %d, destinationrules %d", len(desiredGateways), len(desiredVirtualServices), len(desiredDestinationRules))
 	actualGateways, actualVirtualServices, actualDestinationRules := getActualResources(namespace)
+	log.Printf("actual: gateways %d, virtualservices: %d, destinationrules %d", len(actualGateways), len(actualVirtualServices), len(actualDestinationRules))
 
 	//existing && !desired -> delete
 	//desired && !existing -> create
@@ -30,67 +32,73 @@ func Apply(entrypointFlows []models.EntrypointFlow, namespace string) {
 	//Gateway
 	desiredGatewaysObj := make([]runtime.Object, len(desiredGateways))
 	for i, x := range desiredGateways {
-		desiredGatewaysObj[i] = runtime.Object(&x)
+		desiredGatewaysObj[i] = x.DeepCopyObject()
 	}
 	actualGatewaysObj := make([]runtime.Object, len(actualGateways))
 	for i, x := range actualGateways {
-		actualGatewaysObj[i] = runtime.Object(&x)
+		actualGatewaysObj[i] = x.DeepCopyObject()
 	}
-	gatewaysToDeleteObj := triageDelete(desiredGatewaysObj, actualGatewaysObj)
+	gatewaysToDeleteObj := triageDelete(actualGatewaysObj, desiredGatewaysObj)
 	gatewaysToDelete := make([]istioapi.Gateway, len(gatewaysToDeleteObj))
 	for i, x := range gatewaysToDeleteObj {
 		gatewaysToDelete[i] = *x.(*istioapi.Gateway)
 	}
+	log.Printf("deleting %d gateways", len(gatewaysToDelete))
 	deleteGateways(gatewaysToDelete)
-	gatewaysToCreateObj := triageCreate(desiredGatewaysObj, actualGatewaysObj)
+	gatewaysToCreateObj := triageCreate(actualGatewaysObj, desiredGatewaysObj)
 	gatewaysToCreate := make([]istioapi.Gateway, len(gatewaysToCreateObj))
 	for i, x := range gatewaysToCreateObj {
 		gatewaysToCreate[i] = *x.(*istioapi.Gateway)
 	}
+	log.Printf("creating %d gateways", len(gatewaysToCreate))
 	createGateways(gatewaysToCreate)
 
 	//VirtualService
 	desiredVirtualServicesObj := make([]runtime.Object, len(desiredVirtualServices))
 	for i, x := range desiredVirtualServices {
-		desiredVirtualServicesObj[i] = runtime.Object(&x)
+		desiredVirtualServicesObj[i] = x.DeepCopyObject()
 	}
 	actualVirtualServicesObj := make([]runtime.Object, len(actualVirtualServices))
 	for i, x := range actualVirtualServices {
-		actualVirtualServicesObj[i] = runtime.Object(&x)
+		actualVirtualServicesObj[i] = x.DeepCopyObject()
 	}
-	virtualServicesToDeleteObj := triageDelete(desiredVirtualServicesObj, actualVirtualServicesObj)
+	virtualServicesToDeleteObj := triageDelete(actualVirtualServicesObj, desiredVirtualServicesObj)
 	virtualServicesToDelete := make([]istioapi.VirtualService, len(virtualServicesToDeleteObj))
 	for i, x := range virtualServicesToDeleteObj {
 		virtualServicesToDelete[i] = *x.(*istioapi.VirtualService)
 	}
+	log.Printf("deleting %d virtualservices", len(virtualServicesToDelete))
 	deleteVirtualServices(virtualServicesToDelete)
-	virtualServicesToCreateObj := triageCreate(desiredVirtualServicesObj, actualVirtualServicesObj)
+	virtualServicesToCreateObj := triageCreate(actualVirtualServicesObj, desiredVirtualServicesObj)
 	virtualServicesToCreate := make([]istioapi.VirtualService, len(virtualServicesToCreateObj))
 	for i, x := range virtualServicesToCreateObj {
 		virtualServicesToCreate[i] = *x.(*istioapi.VirtualService)
 	}
+	log.Printf("creating %d virtualservices", len(virtualServicesToCreate))
 	createVirtualServices(virtualServicesToCreate)
 
 	//DestinationRule
 	desiredDestinationRulesObj := make([]runtime.Object, len(desiredDestinationRules))
 	for i, x := range desiredDestinationRules {
-		desiredDestinationRulesObj[i] = runtime.Object(&x)
+		desiredDestinationRulesObj[i] = x.DeepCopyObject()
 	}
 	actualDestinationRulesObj := make([]runtime.Object, len(actualDestinationRules))
 	for i, x := range actualDestinationRules {
-		actualDestinationRulesObj[i] = runtime.Object(&x)
+		actualDestinationRulesObj[i] = x.DeepCopyObject()
 	}
-	destinationRulesToDeleteObj := triageDelete(desiredDestinationRulesObj, actualDestinationRulesObj)
+	destinationRulesToDeleteObj := triageDelete(actualDestinationRulesObj, desiredDestinationRulesObj)
 	destinationRulesToDelete := make([]istioapi.DestinationRule, len(destinationRulesToDeleteObj))
 	for i, x := range destinationRulesToDeleteObj {
 		destinationRulesToDelete[i] = *x.(*istioapi.DestinationRule)
 	}
+	log.Printf("deleting %d destinationrules", len(destinationRulesToDelete))
 	deleteDestinationRules(destinationRulesToDelete)
-	destinationRulesToCreateObj := triageCreate(desiredDestinationRulesObj, actualDestinationRulesObj)
+	destinationRulesToCreateObj := triageCreate(actualDestinationRulesObj, desiredDestinationRulesObj)
 	destinationRulesToCreate := make([]istioapi.DestinationRule, len(destinationRulesToCreateObj))
 	for i, x := range destinationRulesToCreateObj {
 		destinationRulesToCreate[i] = *x.(*istioapi.DestinationRule)
 	}
+	log.Printf("creating %d destinationrules", len(destinationRulesToCreate))
 	createDestinationRules(destinationRulesToCreate)
 }
 
@@ -167,7 +175,7 @@ Outer:
 			eAccessor, _ := meta.Accessor(e)
 			dAccessor, _ := meta.Accessor(d)
 			if eAccessor.GetName() == dAccessor.GetName() {
-				break Outer
+				continue Outer
 			}
 		}
 		res = append(res, e)
@@ -175,19 +183,40 @@ Outer:
 	return res
 }
 
+// func triageCreate(existing []runtime.Object, desired []runtime.Object) (res []runtime.Object) {
+// Outer:
+// 	for _, d := range desired {
+// 		for _, e := range existing {
+// 			eAccessor, _ := meta.Accessor(e)
+// 			dAccessor, _ := meta.Accessor(d)
+// 			if eAccessor.GetName() == dAccessor.GetName() {
+// 				continue Outer
+// 			}
+// 		}
+// 		res = append(res, d)
+// 	}
+// 	return res
+// }
+
 func triageCreate(existing []runtime.Object, desired []runtime.Object) (res []runtime.Object) {
-Outer:
 	for _, d := range desired {
-		for _, e := range existing {
-			eAccessor, _ := meta.Accessor(e)
-			dAccessor, _ := meta.Accessor(d)
-			if eAccessor.GetName() == dAccessor.GetName() {
-				break Outer
-			}
+		if !desiredExists(d, existing) {
+			res = append(res, d)
 		}
-		res = append(res, d)
 	}
 	return res
+}
+
+func desiredExists(desired runtime.Object, existing []runtime.Object) bool {
+	for _, e := range existing {
+		eAccessor, _ := meta.Accessor(e)
+		dAccessor, _ := meta.Accessor(desired)
+		log.Printf("existing: %s, desired: %s", eAccessor.GetName(), dAccessor.GetName())
+		if eAccessor.GetName() == dAccessor.GetName() {
+			return true
+		}
+	}
+	return false
 }
 
 func getDesiredResources(entrypointFlows []models.EntrypointFlow, namespace string) (gateways []istioapi.Gateway, virtualServices []istioapi.VirtualService, destinationRules []istioapi.DestinationRule) {
@@ -204,11 +233,11 @@ func getDesiredResources(entrypointFlows []models.EntrypointFlow, namespace stri
 		virtualServices = append(virtualServices, gatewayVirtualService)
 
 		transformedServices := TransformVirtualEnvironment(entrypointFlow.VirtualEnvironments)
-		virtualServices := resources.MakeIstioVirtualServices(transformedServices, namespace, gatewayName)
-		destinationRules := resources.MakeIstioDestinationRules(transformedServices, namespace, gatewayName)
+		transformedVirtualServices := resources.MakeIstioVirtualServices(transformedServices, namespace, gatewayName)
+		transformedDestinationRules := resources.MakeIstioDestinationRules(transformedServices, namespace, gatewayName)
 
-		virtualServices = append(virtualServices, virtualServices...)
-		destinationRules = append(destinationRules, destinationRules...)
+		virtualServices = append(virtualServices, transformedVirtualServices...)
+		destinationRules = append(destinationRules, transformedDestinationRules...)
 	}
 	return
 }

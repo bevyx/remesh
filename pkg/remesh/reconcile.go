@@ -20,6 +20,10 @@ func Combine(virtualEnvironmentList api.VirtualEnvironmentList, targetingList ap
 		if ok {
 			targetings := getAllTargetingsByEntrypoint(entrypoint.ObjectMeta.Name, targetingList.Items)
 			targetingFlows, virtualEnvironmentSet := combineTargetingToVirtualEnvironments(targetings, virtualEnvironmentList.Items)
+			_, isDefaultInSet := findVirtualEnvironment(defaultVirtualEnvironment.Name, virtualEnvironmentSet)
+			if !isDefaultInSet {
+				virtualEnvironmentSet = append(virtualEnvironmentSet, defaultVirtualEnvironment)
+			}
 			entrypointFlows = append(entrypointFlows, models.EntrypointFlow{
 				Entrypoint:                entrypoint,
 				DefaultVirtualEnvironment: defaultVirtualEnvironment,
