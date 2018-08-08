@@ -183,19 +183,19 @@ version="v2.2.1"
 
 [[override]]
 name="k8s.io/api"
-version="kubernetes-1.10.0"
+version="kubernetes-1.11.2"
 
 [[override]]
 name="k8s.io/apiextensions-apiserver"
-version="kubernetes-1.10.1"
+version="kubernetes-1.11.2"
 
 [[override]]
 name="k8s.io/apimachinery"
-version="kubernetes-1.10.0"
+version="kubernetes-1.11.2"
 
 [[override]]
 name="k8s.io/client-go"
-version="kubernetes-1.10.1"
+version="kubernetes-1.11.2"
 
 [[override]]
 name="k8s.io/code-generator"
