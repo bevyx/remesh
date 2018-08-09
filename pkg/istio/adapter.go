@@ -279,9 +279,6 @@ func getDesiredResources(entrypointFlows []models.EntrypointFlow, namespace stri
 		transformedServices := TransformVirtualEnvironment(entrypointFlow.VirtualEnvironments)
 		transformedVirtualServices := resources.MakeIstioVirtualServices(transformedServices, namespace, virtualServiceName)
 		transformedDestinationRules := resources.MakeIstioDestinationRules(transformedServices, namespace)
-
-		//spew.Dump(transformedVirtualServices)
-
 		virtualServices = append(virtualServices, transformedVirtualServices...)
 		destinationRules = append(destinationRules, transformedDestinationRules...)
 	}
