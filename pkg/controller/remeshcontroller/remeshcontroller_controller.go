@@ -88,6 +88,11 @@ type ReconcileRemesh struct {
 // and what is in the Remesh.Spec
 // +kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=remesh.bevyx.com,resources=entrypoints,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=remesh.bevyx.com,resources=targetings,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=remesh.bevyx.com,resources=virtualenvironments,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=networking.istio.io,resources=gateways,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=networking.istio.io,resources=virtualservices,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=networking.istio.io,resources=destinationrules,verbs=get;list;watch;create;update;patch;delete
 func (r *ReconcileRemesh) Reconcile(request reconcile.Request) (reconcile.Result, error) {
 
 	virtualEnvironmentList, targetingList, entrypointList, err := r.fetchRemeshResources(request)

@@ -12,21 +12,27 @@ func MakeIstioGateway(entrypoint api.Entrypoint, namespace string) (istioapi.Gat
 
 	for _, server := range entrypoint.Spec.Servers {
 
-		istioServers = append(istioServers, istioapi.Server{
-			Port: istioapi.Port{
-				Name:     server.Port.Name,
-				Number:   server.Port.Number,
-				Protocol: server.Port.Protocol,
-			},
-			Hosts: server.Hosts,
-			Tls: istioapi.Server_TLSOptions{
+		var tls *istioapi.Server_TLSOptions
+
+		if server.Tls != nil {
+			tls = &istioapi.Server_TLSOptions{
 				HttpsRedirect:     server.Tls.HttpsRedirect,
 				Mode:              istioapi.Server_TLSOptions_TLSmode(server.Tls.Mode),
 				ServerCertificate: server.Tls.ServerCertificate,
 				PrivateKey:        server.Tls.PrivateKey,
 				CaCertificates:    server.Tls.CaCertificates,
 				SubjectAltNames:   server.Tls.SubjectAltNames,
+			}
+		}
+
+		istioServers = append(istioServers, istioapi.Server{
+			Port: &istioapi.Port{
+				Name:     server.Port.Name,
+				Number:   server.Port.Number,
+				Protocol: server.Port.Protocol,
 			},
+			Hosts: server.Hosts,
+			Tls:   tls,
 		})
 	}
 	gatewaySpec := istioapi.GatewaySpec{

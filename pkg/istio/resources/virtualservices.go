@@ -3,12 +3,15 @@ package resources
 import (
 	istioapi "github.com/bevyx/istio-api-go/pkg/apis/networking/v1alpha3"
 	istiomodels "github.com/bevyx/remesh/pkg/istio/models"
+	"github.com/davecgh/go-spew/spew"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func MakeIstioVirtualServices(transformedServices []istiomodels.TransformedService, namespace string, gateway string) []istioapi.VirtualService {
 	virtualServices := make([]istioapi.VirtualService, 0)
 	for _, transformedService := range transformedServices {
+		vs := makeVirtualService(transformedService, namespace, gateway)
+		spew.Dump(vs)
 		virtualServices = append(virtualServices, makeVirtualService(transformedService, namespace, gateway))
 	}
 	return virtualServices
@@ -21,7 +24,7 @@ func makeVirtualService(transformedService istiomodels.TransformedService, names
 			APIVersion: "networking.istio.io/v1alpha3",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      transformedService.Host,
+			Name:      Prefix + transformedService.Host + VsSuffix,
 			Namespace: namespace,
 			/*OwnerReferences: []metav1.OwnerReference{
 				*metav1.NewControllerRef(&entrypoint, schema.GroupVersionKind{
@@ -36,7 +39,7 @@ func makeVirtualService(transformedService istiomodels.TransformedService, names
 	}
 }
 
-func makeVirtualServiceSpec(transformedService istiomodels.TransformedService, namespace string, gateway string) istioapi.VirtualServiceSpec {
+func makeVirtualServiceSpec(transformedService istiomodels.TransformedService, namespace string, gatewayVirtualServiceName string) istioapi.VirtualServiceSpec {
 	https := make([]istioapi.HTTPRoute, 0)
 	for _, subsetService := range transformedService.ServiceSubsetList {
 		for _, virtualEnvironment := range subsetService.VirtualEnvironments {
@@ -63,7 +66,7 @@ func makeVirtualServiceSpec(transformedService istiomodels.TransformedService, n
 	}
 	return istioapi.VirtualServiceSpec{
 		Hosts:    []string{transformedService.Host},
-		Gateways: []string{gateway, "mesh"},
+		Gateways: []string{gatewayVirtualServiceName, Mesh},
 		Http:     https,
 	}
 }

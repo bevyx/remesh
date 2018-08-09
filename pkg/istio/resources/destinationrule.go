@@ -6,22 +6,22 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func MakeIstioDestinationRules(transformedServices []istiomodels.TransformedService, namespace string, gateway string) []istioapi.DestinationRule {
+func MakeIstioDestinationRules(transformedServices []istiomodels.TransformedService, namespace string) []istioapi.DestinationRule {
 	destinationRules := make([]istioapi.DestinationRule, 0)
 	for _, transformedService := range transformedServices {
-		destinationRules = append(destinationRules, makeDestinationRule(transformedService, namespace, gateway))
+		destinationRules = append(destinationRules, makeDestinationRule(transformedService, namespace))
 	}
 	return destinationRules
 }
 
-func makeDestinationRule(transformedService istiomodels.TransformedService, namespace string, gateway string) istioapi.DestinationRule {
+func makeDestinationRule(transformedService istiomodels.TransformedService, namespace string) istioapi.DestinationRule {
 	return istioapi.DestinationRule{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "DestinationRule",
 			APIVersion: "networking.istio.io/v1alpha3",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      transformedService.Host,
+			Name:      Prefix + transformedService.Host + DsSuffix,
 			Namespace: namespace,
 			/*OwnerReferences: []metav1.OwnerReference{
 				*metav1.NewControllerRef(&entrypoint, schema.GroupVersionKind{

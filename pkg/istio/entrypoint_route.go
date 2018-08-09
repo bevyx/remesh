@@ -15,11 +15,11 @@ func MakeRouteForEntrypoint(entrypointFlow models.EntrypointFlow) []istioapi.HTT
 	sort.Sort(models.ByPriority(prioritizeTargetingFlows))
 	for _, targetingFlow := range prioritizeTargetingFlows {
 		combainedIstioRouteList := makeCombainedIstioRouteList(targetingFlow.VirtualEnvironment, targetingFlow.Targeting)
-		defaultIstioRouteList := makeDefaultIstioRouteList(entrypointFlow.DefaultVirtualEnvironment)
-
 		istioRouteList = append(istioRouteList, combainedIstioRouteList...)
-		istioRouteList = append(istioRouteList, defaultIstioRouteList...)
+
 	}
+	defaultIstioRouteList := makeDefaultIstioRouteList(entrypointFlow.DefaultVirtualEnvironment)
+	istioRouteList = append(istioRouteList, defaultIstioRouteList...)
 
 	return istioRouteList
 }
@@ -33,7 +33,7 @@ func makeCombainedIstioRouteList(virtualEnvironment api.VirtualEnvironment, targ
 				istioMatchList = append(istioMatchList, combaineMatchesToIstioMatch(veMatch, targetingMatch))
 			}
 		}
-		istioRouteList = append(istioRouteList, makeIstioRoute(istioMatchList, veRoute.DestinationRoute.Host, veRoute.DestinationRoute.Port.Number, targeting.Spec.VirtualEnvironment))
+		istioRouteList = append(istioRouteList, makeIstioRoute(istioMatchList, veRoute.Destination.Host, veRoute.Destination.Port, targeting.Spec.VirtualEnvironment))
 
 	}
 	return istioRouteList
@@ -46,21 +46,25 @@ func makeDefaultIstioRouteList(defaultVirtualEnvironment api.VirtualEnvironment)
 		for _, veMatch := range veRoute.Match {
 			istioMatchList = append(istioMatchList, combaineMatchesToIstioMatch(veMatch, api.HTTPMatchRequest{}))
 		}
-		istioRouteList = append(istioRouteList, makeIstioRoute(istioMatchList, veRoute.DestinationRoute.Host, veRoute.DestinationRoute.Port.Number, defaultVirtualEnvironment.Name))
+		istioRouteList = append(istioRouteList, makeIstioRoute(istioMatchList, veRoute.Destination.Host, veRoute.Destination.Port, defaultVirtualEnvironment.Name))
 	}
 	return istioRouteList
 }
 
-func makeIstioRoute(istioMatchList []istioapi.HTTPMatchRequest, destinationHost string, destinationRoutePortNumber uint32, virtualEnvironmentName string) istioapi.HTTPRoute {
+func makeIstioRoute(istioMatchList []istioapi.HTTPMatchRequest, destinationHost string, destinationRoutePort *api.PortSelector, virtualEnvironmentName string) istioapi.HTTPRoute {
+	var port *istioapi.PortSelector
+	if destinationRoutePort != nil {
+		port = &istioapi.PortSelector{
+			Number: destinationRoutePort.Number,
+		}
+	}
 	return istioapi.HTTPRoute{
 		Match: istioMatchList,
 		Route: []istioapi.DestinationWeight{
 			istioapi.DestinationWeight{
 				Destination: istioapi.Destination{
 					Host: destinationHost,
-					Port: istioapi.PortSelector{
-						Number: destinationRoutePortNumber,
-					},
+					Port: port,
 				},
 				Weight: 100,
 			},
@@ -131,29 +135,29 @@ func comaineStringSlicesUnique(slice1 []string, slice2 []string) []string {
 func comaineMapOfStringMatchesToIstio(veMap map[string]api.StringMatch, targetingMap map[string]api.StringMatch) map[string]istioapi.StringMatch {
 	istioMap := make(map[string]istioapi.StringMatch, 0)
 	for keyVe, valueVe := range veMap {
-		istioMap[keyVe] = stringMatchToIstioStringMatch(valueVe)
+		istioMap[keyVe] = *stringMatchToIstioStringMatch(&valueVe)
 	}
 	for keyTargeting, valueTargeting := range targetingMap {
-		istioMap[keyTargeting] = stringMatchToIstioStringMatch(valueTargeting)
+		istioMap[keyTargeting] = *stringMatchToIstioStringMatch(&valueTargeting)
 	}
 	return istioMap
 }
 
-func selectStringMatchesToIstioStringMatch(veStringMatch api.StringMatch, targetingStringMatch api.StringMatch) istioapi.StringMatch {
+func selectStringMatchesToIstioStringMatch(veStringMatch *api.StringMatch, targetingStringMatch *api.StringMatch) *istioapi.StringMatch {
 	if !isStringMatchEmpty(targetingStringMatch) {
 		return stringMatchToIstioStringMatch(targetingStringMatch)
 	} else if !isStringMatchEmpty(veStringMatch) {
 		return stringMatchToIstioStringMatch(veStringMatch)
 	}
-	return istioapi.StringMatch{}
+	return nil
 }
 
-func isStringMatchEmpty(stringMatch api.StringMatch) bool {
-	return stringMatch.Exact == "" && stringMatch.Prefix == "" && stringMatch.Regex == ""
+func isStringMatchEmpty(stringMatch *api.StringMatch) bool {
+	return stringMatch == nil || (stringMatch.Exact == "" && stringMatch.Prefix == "" && stringMatch.Regex == "")
 }
 
-func stringMatchToIstioStringMatch(stringMatch api.StringMatch) istioapi.StringMatch {
-	return istioapi.StringMatch{
+func stringMatchToIstioStringMatch(stringMatch *api.StringMatch) *istioapi.StringMatch {
+	return &istioapi.StringMatch{
 		Exact:  stringMatch.Exact,
 		Prefix: stringMatch.Prefix,
 		Regex:  stringMatch.Regex,

@@ -24,9 +24,9 @@ type PortSelector struct {
 	Number uint32 `json:"number,omitempty"`
 }
 
-type DestinationRoute struct {
-	Host string       `json:"host,omitempty"`
-	Port PortSelector `json:"port,omitempty"`
+type Destination struct {
+	Host string        `json:"host,omitempty"`
+	Port *PortSelector `json:"port,omitempty"`
 }
 
 type Service struct {
@@ -35,15 +35,15 @@ type Service struct {
 }
 
 type HTTPRoute struct {
-	Match            []HTTPMatchRequest `json:"match,omitempty"`
-	DestinationRoute DestinationRoute   `json:"destinationRoute,omitempty"`
+	Match       []HTTPMatchRequest `json:"match,omitempty"`
+	Destination Destination        `json:"destination,omitempty"`
 }
 
 type HTTPMatchRequest struct {
-	Uri          StringMatch            `json:"uri,omitempty"`
-	Scheme       StringMatch            `json:"scheme,omitempty"`
-	Method       StringMatch            `json:"method,omitempty"`
-	Authority    StringMatch            `json:"authority,omitempty"`
+	Uri          *StringMatch           `json:"uri,omitempty"`
+	Scheme       *StringMatch           `json:"scheme,omitempty"`
+	Method       *StringMatch           `json:"method,omitempty"`
+	Authority    *StringMatch           `json:"authority,omitempty"`
 	Headers      map[string]StringMatch `json:"headers,omitempty"`
 	Port         uint32                 `json:"port,omitempty"`
 	SourceLabels map[string]string      `json:"source_labels,omitempty"`

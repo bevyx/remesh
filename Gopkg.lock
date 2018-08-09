@@ -16,7 +16,7 @@
     "pkg/client/clientset/versioned/scheme",
     "pkg/client/clientset/versioned/typed/networking/v1alpha3"
   ]
-  revision = "aafe35f68254153ea8217e63e51c356fa60098a1"
+  revision = "7ea785929712adc475e63e37c945755896ce5976"
 
 [[projects]]
   name = "github.com/davecgh/go-spew"
@@ -622,7 +622,7 @@
     "pkg/internal/codegen/parse",
     "pkg/util"
   ]
-  revision = "ade554d58413a7b2327cf38fde98484e23e66c82"
+  revision = "63bce213bf6d471eb840145d460eb951bb1ad452"
 
 [[projects]]
   name = "sigs.k8s.io/testing_frameworks"

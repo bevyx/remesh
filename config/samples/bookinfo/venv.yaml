@@ -13,11 +13,10 @@ spec:
         exact: /logout
     - uri:
         prefix: /api/v1/products
-    route:
-    - destination:
-        host: productpage
-        port:
-          number: 9080
+    destination:
+      host: productpage
+      port:
+        number: 9080
   services:
   - host: productpage
     labels:

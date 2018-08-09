@@ -240,7 +240,7 @@ type GatewaySpec struct {
 type Server struct {
 	// REQUIRED: The Port on which the proxy should listen for incoming
 	// connections
-	Port Port `json:"port,omitempty"`
+	Port *Port `json:"port,omitempty"`
 	// REQUIRED. A list of hosts exposed by this gateway. At least one
 	// host is required. While typically applicable to
 	// HTTP services, it can also be used for TCP services using TLS with
@@ -259,7 +259,7 @@ type Server struct {
 	// Set of TLS related options that govern the server's behavior. Use
 	// these options to control if all http requests should be redirected to
 	// https, and the TLS modes to use.
-	Tls Server_TLSOptions `json:"tls,omitempty"`
+	Tls *Server_TLSOptions `json:"tls,omitempty"`
 }
 
 type Server_TLSOptions struct {
