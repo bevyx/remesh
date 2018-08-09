@@ -288,7 +288,7 @@ type Destination struct {
 	// Specifies the port on the host that is being addressed. If a service
 	// exposes only a single port it is not required to explicitly select the
 	// port.
-	Port PortSelector `json:"port,omitempty"`
+	Port *PortSelector `json:"port,omitempty"`
 }
 
 // Describes match conditions and actions for routing HTTP/1.1, HTTP2, and
@@ -308,21 +308,21 @@ type HTTPRoute struct {
 	// traffic passthrough option is specified in the rule,
 	// route/redirect will be ignored. The redirect primitive can be used to
 	// send a HTTP 301 redirect to a different URI or Authority.
-	Redirect HTTPRedirect `json:"redirect,omitempty"`
+	Redirect *HTTPRedirect `json:"redirect,omitempty"`
 	// Rewrite HTTP URIs and Authority headers. Rewrite cannot be used with
 	// Redirect primitive. Rewrite will be performed before forwarding.
-	Rewrite HTTPRewrite `json:"rewrite,omitempty"`
+	Rewrite *HTTPRewrite `json:"rewrite,omitempty"`
 	// Deprecated. Websocket upgrades are done automatically starting from Istio 1.0.
 	// $hide_from_docs
 	WebsocketUpgrade bool `json:"websocket_upgrade,omitempty"`
 	// Timeout for HTTP requests.
 	Timeout string `json:"timeout,omitempty"`
 	// Retry policy for HTTP requests.
-	Retries HTTPRetry `json:"retries,omitempty"`
+	Retries *HTTPRetry `json:"retries,omitempty"`
 	// Fault injection policy to apply on HTTP traffic at the client side.
 	// Note that timeouts or retries will not be enabled when faults are
 	// enabled on the client side.
-	Fault HTTPFaultInjection `json:"fault,omitempty"`
+	Fault *HTTPFaultInjection `json:"fault,omitempty"`
 	// Mirror HTTP traffic to a another destination in addition to forwarding
 	// the requests to the intended destination. Mirrored traffic is on a
 	// bestHTTPFaultInjection `json:"fault,omitempty"`
@@ -332,11 +332,11 @@ type HTTPRoute struct {
 	// mirrored cluster to respond before returning the response from the
 	// original destination.  Statistics will be generated for the mirrored
 	// destination.
-	Mirror Destination `json:"mirror,omitempty"`
+	Mirror *Destination `json:"mirror,omitempty"`
 	// Cross-Origin Resource Sharing policy (CORS). Refer to
 	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS
 	// for further details about cross origin resource sharing.
-	CorsPolicy CorsPolicy `json:"cors_policy,omitempty"`
+	CorsPolicy *CorsPolicy `json:"cors_policy,omitempty"`
 	// Additional HTTP headers to add before forwarding a request to the
 	// destination service.
 	AppendHeaders map[string]string `json:"append_headers,omitempty"`
@@ -460,7 +460,7 @@ type HTTPMatchRequest struct {
 	//
 	// - `regex: "value"` for ECMAscript style regex-based match
 	//
-	Uri StringMatch `json:"uri,omitempty"`
+	Uri *StringMatch `json:"uri,omitempty"`
 	// URI Scheme
 	// values are case-sensitive and formatted as follows:
 	//
@@ -470,7 +470,7 @@ type HTTPMatchRequest struct {
 	//
 	// - `regex: "value"` for ECMAscript style regex-based match
 	//
-	Scheme StringMatch `json:"scheme,omitempty"`
+	Scheme *StringMatch `json:"scheme,omitempty"`
 	// HTTP Method
 	// values are case-sensitive and formatted as follows:
 	//
@@ -480,7 +480,7 @@ type HTTPMatchRequest struct {
 	//
 	// - `regex: "value"` for ECMAscript style regex-based match
 	//
-	Method StringMatch `json:"method,omitempty"`
+	Method *StringMatch `json:"method,omitempty"`
 	// HTTP Authority
 	// values are case-sensitive and formatted as follows:
 	//
@@ -490,7 +490,7 @@ type HTTPMatchRequest struct {
 	//
 	// - `regex: "value"` for ECMAscript style regex-based match
 	//
-	Authority StringMatch `json:"authority,omitempty"`
+	Authority *StringMatch `json:"authority,omitempty"`
 	// The header keys must be lowercase and use hyphen as the separator,
 	// e.g. _x-request-id_.
 	//
@@ -832,10 +832,10 @@ type CorsPolicy struct {
 type HTTPFaultInjection struct {
 	// Delay requests before forwarding, emulating various failures such as
 	// network issues, overloaded upstream service, etc.
-	Delay HTTPFaultInjection_Delay `json:"delay,omitempty"`
+	Delay *HTTPFaultInjection_Delay `json:"delay,omitempty"`
 	// Abort Http request attempts and return error codes back to downstream
 	// service, giving the impression that the upstream service is faulty.
-	Abort HTTPFaultInjection_Abort `json:"abort,omitempty"`
+	Abort *HTTPFaultInjection_Abort `json:"abort,omitempty"`
 }
 
 // Delay specification is used to inject latency into the request

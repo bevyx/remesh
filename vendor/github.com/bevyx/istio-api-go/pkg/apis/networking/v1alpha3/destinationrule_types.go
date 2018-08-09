@@ -152,7 +152,7 @@ type DestinationRuleSpec struct {
 	Host string `json:"host,omitempty"`
 	// Traffic policies to apply (load balancing policy, connection pool
 	// sizes, outlier detection).
-	TrafficPolicy TrafficPolicy `json:"traffic_policy,omitempty"`
+	TrafficPolicy *TrafficPolicy `json:"traffic_policy,omitempty"`
 	// One or more named sets that represent individual versions of a
 	// service. Traffic policies can be overridden at subset level.
 	Subsets []Subset `json:"subsets,omitempty"`
@@ -162,11 +162,11 @@ type DestinationRuleSpec struct {
 // destination ports. See DestinationRule for examples.
 type TrafficPolicy struct {
 	// Settings controlling the load balancer algorithms.
-	LoadBalancer LoadBalancerSettings `json:"load_balancer,omitempty"`
+	LoadBalancer *LoadBalancerSettings `json:"load_balancer,omitempty"`
 	// Settings controlling the volume of connections to an upstream service
-	ConnectionPool ConnectionPoolSettings `json:"connection_pool,omitempty"`
+	ConnectionPool *ConnectionPoolSettings `json:"connection_pool,omitempty"`
 	// Settings controlling eviction of unhealthy hosts from the load balancing pool
-	OutlierDetection OutlierDetection `json:"outlier_detection,omitempty"`
+	OutlierDetection *OutlierDetection `json:"outlier_detection,omitempty"`
 	// TLS related settings for connections to the upstream service.
 	Tls TLSSettings `json:"tls,omitempty"`
 	// Traffic policies specific to individual ports. Note that port level
@@ -188,11 +188,11 @@ type TrafficPolicy_PortTrafficPolicy struct {
 	// label>.
 	Port PortSelector `json:"port,omitempty"`
 	// Settings controlling the load balancer algorithms.
-	LoadBalancer LoadBalancerSettings `json:"load_balancer,omitempty"`
+	LoadBalancer *LoadBalancerSettings `json:"load_balancer,omitempty"`
 	// Settings controlling the volume of connections to an upstream service
-	ConnectionPool ConnectionPoolSettings `json:"connection_pool,omitempty"`
+	ConnectionPool *ConnectionPoolSettings `json:"connection_pool,omitempty"`
 	// Settings controlling eviction of unhealthy hosts from the load balancing pool
-	OutlierDetection OutlierDetection `json:"outlier_detection,omitempty"`
+	OutlierDetection *OutlierDetection `json:"outlier_detection,omitempty"`
 	// TLS related settings for connections to the upstream service.
 	Tls TLSSettings `json:"tls,omitempty"`
 }
@@ -238,7 +238,7 @@ type Subset struct {
 	// traffic policies specified at the DestinationRule level. Settings
 	// specified at the subset level will override the corresponding settings
 	// specified at the DestinationRule level.
-	TrafficPolicy TrafficPolicy `json:"traffic_policy,omitempty"`
+	TrafficPolicy *TrafficPolicy `json:"traffic_policy,omitempty"`
 }
 
 // Load balancing policies to apply for a specific destination. See Envoy's
@@ -307,9 +307,9 @@ type LoadBalancerSettings_ConsistentHashLB struct {
 	// REQUIRED: The hash key to use.
 	//
 	// Specified exactly one of the fields below.
-	HttpHeaderName string                                           `json:"httpHeaderName,omitempty"`
-	HttpCookie     LoadBalancerSettings_ConsistentHashLB_HTTPCookie `json:"httpCookie,omitempty"`
-	UseSourceIp    bool                                             `json:"useSourceIp,omitempty"`
+	HttpHeaderName string                                            `json:"httpHeaderName,omitempty"`
+	HttpCookie     *LoadBalancerSettings_ConsistentHashLB_HTTPCookie `json:"httpCookie,omitempty"`
+	UseSourceIp    bool                                              `json:"useSourceIp,omitempty"`
 }
 
 // Describes a HTTP cookie that will be used as the hash key for the
@@ -348,9 +348,9 @@ type LoadBalancerSettings_ConsistentHashLB_HTTPCookie struct {
 // ```
 type ConnectionPoolSettings struct {
 	// Settings common to both HTTP and TCP upstream connections.
-	Tcp ConnectionPoolSettings_TCPSettings `json:"tcp,omitempty"`
+	Tcp *ConnectionPoolSettings_TCPSettings `json:"tcp,omitempty"`
 	// HTTP connection pool settings.
-	Http ConnectionPoolSettings_HTTPSettings `json:"http,omitempty"`
+	Http *ConnectionPoolSettings_HTTPSettings `json:"http,omitempty"`
 }
 
 // Settings common to both HTTP and TCP upstream connections.

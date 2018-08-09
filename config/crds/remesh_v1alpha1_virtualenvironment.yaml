@@ -25,7 +25,7 @@ spec:
             http:
               items:
                 properties:
-                  destinationRoute:
+                  destination:
                     properties:
                       host:
                         type: string

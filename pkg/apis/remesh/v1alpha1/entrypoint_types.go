@@ -36,9 +36,9 @@ type Port struct {
 }
 
 type Server struct {
-	Port  Port              `json:"port,omitempty"`
-	Hosts []string          `json:"hosts,omitempty"`
-	Tls   Server_TLSOptions `json:"tls,omitempty"`
+	Port  *Port              `json:"port,omitempty"`
+	Hosts []string           `json:"hosts,omitempty"`
+	Tls   *Server_TLSOptions `json:"tls,omitempty"`
 }
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!

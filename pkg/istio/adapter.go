@@ -273,12 +273,14 @@ func getDesiredResources(entrypointFlows []models.EntrypointFlow, namespace stri
 		gateways = append(gateways, gateway)
 
 		httpRoutes := MakeRouteForEntrypoint(entrypointFlow)
-		gatewayVirtualService := resources.MakeIstioVirtualServiceForGateway(httpRoutes, namespace, gatewayName)
+		gatewayVirtualService, virtualServiceName := resources.MakeIstioVirtualServiceForGateway(httpRoutes, namespace, gatewayName)
 		virtualServices = append(virtualServices, gatewayVirtualService)
 
 		transformedServices := TransformVirtualEnvironment(entrypointFlow.VirtualEnvironments)
-		transformedVirtualServices := resources.MakeIstioVirtualServices(transformedServices, namespace, gatewayName)
-		transformedDestinationRules := resources.MakeIstioDestinationRules(transformedServices, namespace, gatewayName)
+		transformedVirtualServices := resources.MakeIstioVirtualServices(transformedServices, namespace, virtualServiceName)
+		transformedDestinationRules := resources.MakeIstioDestinationRules(transformedServices, namespace)
+
+		//spew.Dump(transformedVirtualServices)
 
 		virtualServices = append(virtualServices, transformedVirtualServices...)
 		destinationRules = append(destinationRules, transformedDestinationRules...)

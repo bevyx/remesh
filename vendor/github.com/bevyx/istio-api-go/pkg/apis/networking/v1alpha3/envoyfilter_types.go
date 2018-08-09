@@ -165,9 +165,9 @@ type EnvoyFilter_InsertPosition struct {
 type EnvoyFilter_Filter struct {
 	// Filter will be added to the listener only if the match conditions are true.
 	// If not specified, the filters will be applied to all listeners.
-	ListenerMatch EnvoyFilter_ListenerMatch `json:"listener_match,omitempty"`
+	ListenerMatch *EnvoyFilter_ListenerMatch `json:"listener_match,omitempty"`
 	// Insert position in the filter chain. Defaults to FIRST
-	InsertPosition EnvoyFilter_InsertPosition `json:"insert_position,omitempty"`
+	InsertPosition *EnvoyFilter_InsertPosition `json:"insert_position,omitempty"`
 	// REQUIRED: The type of filter to instantiate.
 	FilterType EnvoyFilter_Filter_FilterType `json:"filter_type,omitempty"`
 	// REQUIRED: The name of the filter to instantiate. The name must match a supported

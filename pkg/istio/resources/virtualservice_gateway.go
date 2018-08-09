@@ -5,15 +5,15 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func MakeIstioVirtualServiceForGateway(httpRoutes []istioapi.HTTPRoute, namespace string, gateway string) istioapi.VirtualService {
-	name := gateway + VsSuffix
-	return istioapi.VirtualService{
+func MakeIstioVirtualServiceForGateway(httpRoutes []istioapi.HTTPRoute, namespace string, gateway string) (virtualService istioapi.VirtualService, virtualServiceName string) {
+	virtualServiceName = gateway + VsSuffix
+	virtualService = istioapi.VirtualService{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "VirtualService",
 			APIVersion: "networking.istio.io/v1alpha3",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
+			Name:      virtualServiceName,
 			Namespace: namespace,
 			/*OwnerReferences: []metav1.OwnerReference{
 				*metav1.NewControllerRef(&entrypoint, schema.GroupVersionKind{
@@ -30,4 +30,5 @@ func MakeIstioVirtualServiceForGateway(httpRoutes []istioapi.HTTPRoute, namespac
 			Http:     httpRoutes,
 		},
 	}
+	return
 }

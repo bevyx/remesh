@@ -20,21 +20,21 @@ func TestTransformVirtualEnvironment(t *testing.T) {
 				Http: []api.HTTPRoute{api.HTTPRoute{
 					Match: []api.HTTPMatchRequest{
 						api.HTTPMatchRequest{
-							Uri: api.StringMatch{Exact: "/productpage"},
+							Uri: &api.StringMatch{Exact: "/productpage"},
 						},
 						api.HTTPMatchRequest{
-							Uri: api.StringMatch{Exact: "/login"},
+							Uri: &api.StringMatch{Exact: "/login"},
 						},
 						api.HTTPMatchRequest{
-							Uri: api.StringMatch{Exact: "/logout"},
+							Uri: &api.StringMatch{Exact: "/logout"},
 						},
 						api.HTTPMatchRequest{
-							Uri: api.StringMatch{Prefix: "/api/v1/products"},
+							Uri: &api.StringMatch{Prefix: "/api/v1/products"},
 						},
 					},
-					DestinationRoute: api.DestinationRoute{
+					Destination: api.Destination{
 						Host: "productpage",
-						Port: api.PortSelector{
+						Port: &api.PortSelector{
 							Number: 9080,
 						},
 					},
@@ -70,21 +70,21 @@ func TestTransformVirtualEnvironment(t *testing.T) {
 				Http: []api.HTTPRoute{api.HTTPRoute{
 					Match: []api.HTTPMatchRequest{
 						api.HTTPMatchRequest{
-							Uri: api.StringMatch{Exact: "/productpage"},
+							Uri: &api.StringMatch{Exact: "/productpage"},
 						},
 						api.HTTPMatchRequest{
-							Uri: api.StringMatch{Exact: "/login"},
+							Uri: &api.StringMatch{Exact: "/login"},
 						},
 						api.HTTPMatchRequest{
-							Uri: api.StringMatch{Exact: "/logout"},
+							Uri: &api.StringMatch{Exact: "/logout"},
 						},
 						api.HTTPMatchRequest{
-							Uri: api.StringMatch{Prefix: "/api/v1/products"},
+							Uri: &api.StringMatch{Prefix: "/api/v1/products"},
 						},
 					},
-					DestinationRoute: api.DestinationRoute{
+					Destination: api.Destination{
 						Host: "productpage",
-						Port: api.PortSelector{
+						Port: &api.PortSelector{
 							Number: 9080,
 						},
 					},

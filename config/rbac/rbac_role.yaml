@@ -53,6 +53,66 @@ rules:
   - patch
   - delete
 - apiGroups:
+  - remesh.bevyx.com
+  resources:
+  - targetings
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - remesh.bevyx.com
+  resources:
+  - virtualenvironments
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - networking.istio.io
+  resources:
+  - gateways
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - networking.istio.io
+  resources:
+  - virtualservices
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - networking.istio.io
+  resources:
+  - destinationrules
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
   - apps
   resources:
   - deployments
