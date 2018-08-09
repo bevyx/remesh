@@ -9,7 +9,6 @@ import (
 func MakeIstioVirtualServices(transformedServices []istiomodels.TransformedService, namespace string, gateway string) []istioapi.VirtualService {
 	virtualServices := make([]istioapi.VirtualService, 0)
 	for _, transformedService := range transformedServices {
-		vs := makeVirtualService(transformedService, namespace, gateway)
 		virtualServices = append(virtualServices, makeVirtualService(transformedService, namespace, gateway))
 	}
 	return virtualServices
