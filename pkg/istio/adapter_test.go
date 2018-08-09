@@ -4,8 +4,6 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/davecgh/go-spew/spew"
-
 	istioapi "github.com/bevyx/istio-api-go/pkg/apis/networking/v1alpha3"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -191,7 +189,55 @@ func TestToCreate(t *testing.T) {
 	}
 }
 
-func TestGetActualResources(t *testing.T) {
-	gateways, virtualServices, destinationRules := getActualResources("istio-system")
-	spew.Dump(gateways, virtualServices, destinationRules)
+func TestToUpdate(t *testing.T) {
+	existing := []istioapi.Gateway{
+		*gw1.DeepCopy(),
+	}
+	desired := []istioapi.Gateway{
+		*gw1.DeepCopy(),
+	}
+	existingObj := make([]runtime.Object, len(existing))
+	for i, e := range existing {
+		existingObj[i] = runtime.Object(&e)
+	}
+	desiredObj := make([]runtime.Object, len(desired))
+	for i, d := range desired {
+		desiredObj[i] = runtime.Object(&d)
+	}
+	actualObj := triageUpdate(existingObj, desiredObj)
+	expected := []runtime.Object{
+		gw1.DeepCopyObject(),
+	}
+	if !reflect.DeepEqual(actualObj, expected) {
+		t.Fail()
+	}
+
+	// --------------------
+
+	existing = []istioapi.Gateway{
+		*gw1.DeepCopy(),
+	}
+	existing[0].Name = "another"
+	desired = []istioapi.Gateway{
+		*gw1.DeepCopy(),
+	}
+	existingObj = make([]runtime.Object, len(existing))
+	for i, e := range existing {
+		existingObj[i] = runtime.Object(&e)
+	}
+	desiredObj = make([]runtime.Object, len(desired))
+	for i, d := range desired {
+		desiredObj[i] = runtime.Object(&d)
+	}
+	actualObj = triageUpdate(existingObj, desiredObj)
+	expected = nil
+
+	if !reflect.DeepEqual(actualObj, expected) {
+		t.Fail()
+	}
 }
+
+// func TestGetActualResources(t *testing.T) {
+// 	gateways, virtualServices, destinationRules := getActualResources("istio-system")
+// 	spew.Dump(len(gateways), len(virtualServices), len(destinationRules))
+// }
