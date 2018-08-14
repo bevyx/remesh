@@ -16,7 +16,6 @@ func MakeRouteForEntrypoint(entrypointFlow models.EntrypointFlow) []istioapi.HTT
 	for _, targetingFlow := range prioritizeTargetingFlows {
 		combainedIstioRouteList := makeCombainedIstioRouteList(targetingFlow.VirtualEnvironment, targetingFlow.Targeting)
 		istioRouteList = append(istioRouteList, combainedIstioRouteList...)
-
 	}
 	defaultIstioRouteList := makeDefaultIstioRouteList(entrypointFlow.DefaultVirtualEnvironment)
 	istioRouteList = append(istioRouteList, defaultIstioRouteList...)

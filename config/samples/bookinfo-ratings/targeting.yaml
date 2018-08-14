@@ -1,13 +1,13 @@
 apiVersion: remesh.bevyx.com/v1alpha1
 kind: Targeting
 metadata:
-  name: test-user-json
+  name: test-user-jason
 spec:
   entrypoint: bookinfo
   priority: 2
   segment:
-  - httpMatch:
+    httpMatch:
     - headers:
-      cookie:
-        regex: "^(.*?;)?(user=jason)(;.*)?$"
+        cookie:
+          regex: "^(.*?;)?(user=jason)(;.*)?$"
   virtualEnvironment: bookinfo-ratings
