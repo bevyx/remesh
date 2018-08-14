@@ -7,6 +7,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
+//MakeIstioGateway is
 func MakeIstioGateway(entrypoint api.Entrypoint, namespace string) (istioapi.Gateway, string) {
 	istioServers := make([]istioapi.Server, 0)
 

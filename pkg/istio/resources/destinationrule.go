@@ -6,6 +6,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+//MakeIstioDestinationRules is
 func MakeIstioDestinationRules(transformedServices []istiomodels.TransformedService, namespace string) []istioapi.DestinationRule {
 	destinationRules := make([]istioapi.DestinationRule, 0)
 	for _, transformedService := range transformedServices {
