@@ -8,6 +8,7 @@ import (
 	"github.com/bevyx/remesh/pkg/models"
 )
 
+//MakeRouteForEntrypoint is
 func MakeRouteForEntrypoint(entrypointFlow models.EntrypointFlow) []istioapi.HTTPRoute {
 	istioRouteList := make([]istioapi.HTTPRoute, 0)
 	prioritizeTargetingFlows := make([]models.TargetingFlow, len(entrypointFlow.TargetingFlows))

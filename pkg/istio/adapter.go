@@ -1,25 +1,40 @@
 package istio
 
 import (
+	"context"
 	"log"
 
+	"sigs.k8s.io/controller-runtime/pkg/client"
+
 	istioapi "github.com/bevyx/istio-api-go/pkg/apis/networking/v1alpha3"
-	istioapiclient "github.com/bevyx/istio-api-go/pkg/client/clientset/versioned"
 	"github.com/bevyx/remesh/pkg/istio/resources"
 	"k8s.io/apimachinery/pkg/api/meta"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"k8s.io/apimachinery/pkg/runtime"
 
 	"github.com/bevyx/remesh/pkg/models"
-	"sigs.k8s.io/controller-runtime/pkg/client/config"
 )
 
-func Apply(entrypointFlows []models.EntrypointFlow, namespace string) {
+//IstioApplier is
+type IstioApplier struct {
+	namespace  string
+	reconciler client.Client
+}
+
+//NewIstioApplier is
+func NewIstioApplier(namespace string, reconciler client.Client) IstioApplier {
+	return IstioApplier{
+		namespace:  namespace,
+		reconciler: reconciler,
+	}
+}
+
+//Apply is
+func (a *IstioApplier) Apply(entrypointFlows []models.EntrypointFlow) {
 	log.Printf("applying %d entrypointFlows", len(entrypointFlows))
-	desiredGateways, desiredVirtualServices, desiredDestinationRules := getDesiredResources(entrypointFlows, namespace)
+	desiredGateways, desiredVirtualServices, desiredDestinationRules := a.getDesiredResources(entrypointFlows, a.namespace)
 	log.Printf("desired: gateways %d, virtualservices: %d, destinationrules %d", len(desiredGateways), len(desiredVirtualServices), len(desiredDestinationRules))
-	actualGateways, actualVirtualServices, actualDestinationRules := getActualResources(namespace)
+	actualGateways, actualVirtualServices, actualDestinationRules := a.getActualResources(a.namespace, a.reconciler)
 	log.Printf("actual: gateways %d, virtualservices: %d, destinationrules %d", len(actualGateways), len(actualVirtualServices), len(actualDestinationRules))
 
 	//existing && !desired -> delete
@@ -27,7 +42,7 @@ func Apply(entrypointFlows []models.EntrypointFlow, namespace string) {
 	//existing && desired -> update
 	//!existing && !desired -> noop
 
-	//TODO: figure out how to operate on runtime.Object s, at least for ops like delete. how to use dynamic client?
+	//TODO: figure out how to make this more generic (runtime.Object), less code dup
 
 	//Gateway
 	desiredGatewaysObj := make([]runtime.Object, len(desiredGateways))
@@ -45,23 +60,44 @@ func Apply(entrypointFlows []models.EntrypointFlow, namespace string) {
 		gatewaysToDelete[i] = *x.(*istioapi.Gateway)
 	}
 	log.Printf("deleting %d gateways", len(gatewaysToDelete))
-	deleteGateways(gatewaysToDelete)
+	a.deleteGateways(gatewaysToDelete)
 
 	gatewaysToCreateObj := triageCreate(actualGatewaysObj, desiredGatewaysObj)
 	gatewaysToCreate := make([]istioapi.Gateway, len(gatewaysToCreateObj))
 	for i, x := range gatewaysToCreateObj {
 		gatewaysToCreate[i] = *x.(*istioapi.Gateway)
 	}
-	log.Printf("updating %d gateways", len(gatewaysToCreate))
-	createGateways(gatewaysToCreate)
+	log.Printf("creating %d gateways", len(gatewaysToCreate))
+	a.createGateways(gatewaysToCreate)
+
+	// gatewaysToUpdateObj := triageUpdate(actualGatewaysObj, desiredGatewaysObj)
+	// gatewaysToUpdate := make([]istioapi.Gateway, len(gatewaysToUpdateObj))
+	// for i, x := range gatewaysToUpdateObj {
+	// 	gatewaysToUpdate[i] = *x.(*istioapi.Gateway)
+	// }
+	// log.Printf("updating %d destinationrules", len(gatewaysToUpdate))
+	// a.updateGateways(gatewaysToUpdate)
 
 	gatewaysToUpdateObj := triageUpdate(actualGatewaysObj, desiredGatewaysObj)
-	gatewaysToUpdate := make([]istioapi.Gateway, len(gatewaysToUpdateObj))
+	gatewaysToUpdate := make([]struct {
+		actual  istioapi.Gateway
+		desired istioapi.Gateway
+	}, len(gatewaysToUpdateObj))
 	for i, x := range gatewaysToUpdateObj {
-		gatewaysToUpdate[i] = *x.(*istioapi.Gateway)
+		tmp := x.(struct {
+			actual  runtime.Object
+			desired runtime.Object
+		})
+		gatewaysToUpdate[i] = struct {
+			actual  istioapi.Gateway
+			desired istioapi.Gateway
+		}{
+			*tmp.actual.(*istioapi.Gateway),
+			*tmp.desired.(*istioapi.Gateway),
+		}
 	}
-	log.Printf("creating %d gateways", len(gatewaysToUpdate))
-	updateGateways(gatewaysToUpdate)
+	log.Printf("updating %d gateways", len(gatewaysToUpdate))
+	a.updateGateways(gatewaysToUpdate)
 
 	//VirtualService
 	desiredVirtualServicesObj := make([]runtime.Object, len(desiredVirtualServices))
@@ -79,7 +115,7 @@ func Apply(entrypointFlows []models.EntrypointFlow, namespace string) {
 		virtualServicesToDelete[i] = *x.(*istioapi.VirtualService)
 	}
 	log.Printf("deleting %d virtualservices", len(virtualServicesToDelete))
-	deleteVirtualServices(virtualServicesToDelete)
+	a.deleteVirtualServices(virtualServicesToDelete)
 
 	virtualServicesToCreateObj := triageCreate(actualVirtualServicesObj, desiredVirtualServicesObj)
 	virtualServicesToCreate := make([]istioapi.VirtualService, len(virtualServicesToCreateObj))
@@ -87,15 +123,28 @@ func Apply(entrypointFlows []models.EntrypointFlow, namespace string) {
 		virtualServicesToCreate[i] = *x.(*istioapi.VirtualService)
 	}
 	log.Printf("creating %d virtualservices", len(virtualServicesToCreate))
-	createVirtualServices(virtualServicesToCreate)
+	a.createVirtualServices(virtualServicesToCreate)
 
 	virtualServicesToUpdateObj := triageUpdate(actualVirtualServicesObj, desiredVirtualServicesObj)
-	virtualServicesToUpdate := make([]istioapi.VirtualService, len(virtualServicesToUpdateObj))
+	virtualServicesToUpdate := make([]struct {
+		actual  istioapi.VirtualService
+		desired istioapi.VirtualService
+	}, len(virtualServicesToUpdateObj))
 	for i, x := range virtualServicesToUpdateObj {
-		virtualServicesToUpdate[i] = *x.(*istioapi.VirtualService)
+		tmp := x.(struct {
+			actual  runtime.Object
+			desired runtime.Object
+		})
+		virtualServicesToUpdate[i] = struct {
+			actual  istioapi.VirtualService
+			desired istioapi.VirtualService
+		}{
+			*tmp.actual.(*istioapi.VirtualService),
+			*tmp.desired.(*istioapi.VirtualService),
+		}
 	}
-	log.Printf("updating %d virtualservices", len(virtualServicesToUpdate))
-	updateVirtualServices(virtualServicesToUpdate)
+	log.Printf("updating %d virtualServices", len(virtualServicesToUpdate))
+	a.updateVirtualServices(virtualServicesToUpdate)
 
 	//DestinationRule
 	desiredDestinationRulesObj := make([]runtime.Object, len(desiredDestinationRules))
@@ -113,112 +162,157 @@ func Apply(entrypointFlows []models.EntrypointFlow, namespace string) {
 		destinationRulesToDelete[i] = *x.(*istioapi.DestinationRule)
 	}
 	log.Printf("deleting %d destinationrules", len(destinationRulesToDelete))
-	deleteDestinationRules(destinationRulesToDelete)
+	a.deleteDestinationRules(destinationRulesToDelete)
+
+	destinationRulesToCreateObj := triageCreate(actualDestinationRulesObj, desiredDestinationRulesObj)
+	destinationRulesToCreate := make([]istioapi.DestinationRule, len(destinationRulesToCreateObj))
+	for i, x := range destinationRulesToCreateObj {
+		destinationRulesToCreate[i] = *x.(*istioapi.DestinationRule)
+	}
+	log.Printf("creating %d destinationrules", len(destinationRulesToCreate))
+	a.createDestinationRules(destinationRulesToCreate)
 
 	destinationRulesToUpdateObj := triageUpdate(actualDestinationRulesObj, desiredDestinationRulesObj)
-	destinationRulesToUpdate := make([]istioapi.DestinationRule, len(destinationRulesToUpdateObj))
+	destinationRulesToUpdate := make([]struct {
+		actual  istioapi.DestinationRule
+		desired istioapi.DestinationRule
+	}, len(destinationRulesToUpdateObj))
 	for i, x := range destinationRulesToUpdateObj {
-		destinationRulesToUpdate[i] = *x.(*istioapi.DestinationRule)
+		tmp := x.(struct {
+			actual  runtime.Object
+			desired runtime.Object
+		})
+		destinationRulesToUpdate[i] = struct {
+			actual  istioapi.DestinationRule
+			desired istioapi.DestinationRule
+		}{
+			*tmp.actual.(*istioapi.DestinationRule),
+			*tmp.desired.(*istioapi.DestinationRule),
+		}
 	}
-	log.Printf("updating %d destinationrules", len(destinationRulesToUpdate))
-	updateDestinationRules(destinationRulesToUpdate)
+	log.Printf("updating %d destinationRules", len(destinationRulesToUpdate))
+	a.updateDestinationRules(destinationRulesToUpdate)
 }
 
-func deleteGateways(gateways []istioapi.Gateway) {
-	cfg := config.GetConfigOrDie() //TODO: inject?
-	istioclientset := istioapiclient.NewForConfigOrDie(cfg)
+func (a *IstioApplier) deleteGateways(gateways []istioapi.Gateway) {
+	// cfg := config.GetConfigOrDie() //TODO: inject?
+	// istioclientset := istioapiclient.NewForConfigOrDie(cfg)
+	// for _, x := range gateways {
+	// 	err := istioclientset.NetworkingV1alpha3().Gateways(x.ObjectMeta.GetNamespace()).Delete(x.ObjectMeta.GetName(), nil)
+	// 	if err != nil {
+	// 		log.Printf("error delete %s/%s :  %v", x.ObjectMeta.GetNamespace(), x.ObjectMeta.GetName(), err)
+	// 	}
+	// }
+
 	for _, x := range gateways {
-		err := istioclientset.NetworkingV1alpha3().Gateways(x.ObjectMeta.GetNamespace()).Delete(x.ObjectMeta.GetName(), nil)
+		err := a.reconciler.Delete(context.TODO(), &x)
 		if err != nil {
-			log.Printf("error deleting %s/%s :  %v", x.ObjectMeta.GetNamespace(), x.ObjectMeta.GetName(), err)
+			log.Printf("error delete %s/%s :  %v", x.GetNamespace(), x.GetName(), err)
 		}
 	}
 }
 
-func createGateways(gateways []istioapi.Gateway) {
-	cfg := config.GetConfigOrDie() //TODO: inject?
-	istioclientset := istioapiclient.NewForConfigOrDie(cfg)
+func (a *IstioApplier) createGateways(gateways []istioapi.Gateway) {
+	// cfg := config.GetConfigOrDie() //TODO: inject?
+	// istioclientset := istioapiclient.NewForConfigOrDie(cfg)
+	// for _, x := range gateways {
+	// 	_, err := istioclientset.NetworkingV1alpha3().Gateways(x.ObjectMeta.GetNamespace()).Create(&x)
+	// 	if err != nil {
+	// 		log.Printf("error create %s/%s :  %v", x.ObjectMeta.GetNamespace(), x.ObjectMeta.GetName(), err)
+	// 	}
+	// }
+
 	for _, x := range gateways {
-		_, err := istioclientset.NetworkingV1alpha3().Gateways(x.ObjectMeta.GetNamespace()).Create(&x)
+		err := a.reconciler.Create(context.TODO(), &x)
 		if err != nil {
-			log.Printf("error creating %s/%s :  %v", x.ObjectMeta.GetNamespace(), x.ObjectMeta.GetName(), err)
+			log.Printf("error create %s/%s :  %v", x.GetNamespace(), x.GetName(), err)
 		}
 	}
 }
 
-func updateGateways(gateways []istioapi.Gateway) {
-	cfg := config.GetConfigOrDie() //TODO: inject?
-	istioclientset := istioapiclient.NewForConfigOrDie(cfg)
+func (a *IstioApplier) updateGateways(gateways []struct {
+	actual  istioapi.Gateway
+	desired istioapi.Gateway
+}) {
+	// cfg := config.GetConfigOrDie() //TODO: inject?
+	// istioclientset := istioapiclient.NewForConfigOrDie(cfg)
+	// for _, x := range gateways {
+	// 	_, err := istioclientset.NetworkingV1alpha3().Gateways(x.ObjectMeta.GetNamespace()).Update(&x)
+	// 	if err != nil {
+	// 		log.Printf("error update %s/%s :  %v", x.ObjectMeta.GetNamespace(), x.ObjectMeta.GetName(), err)
+	// 	}
+	// }
+
 	for _, x := range gateways {
-		_, err := istioclientset.NetworkingV1alpha3().Gateways(x.ObjectMeta.GetNamespace()).Update(&x)
+		tmp := x.actual.DeepCopy()
+		tmp.Spec = x.desired.Spec
+		err := a.reconciler.Update(context.TODO(), tmp)
 		if err != nil {
-			log.Printf("error updating %s/%s :  %v", x.ObjectMeta.GetNamespace(), x.ObjectMeta.GetName(), err)
+			log.Printf("error update %s/%s :  %v", tmp.GetNamespace(), tmp.GetName(), err)
 		}
 	}
 }
 
-func deleteVirtualServices(virtualServices []istioapi.VirtualService) {
-	cfg := config.GetConfigOrDie() //TODO: inject?
-	istioclientset := istioapiclient.NewForConfigOrDie(cfg)
+func (a *IstioApplier) deleteVirtualServices(virtualServices []istioapi.VirtualService) {
 	for _, x := range virtualServices {
-		err := istioclientset.NetworkingV1alpha3().VirtualServices(x.ObjectMeta.GetNamespace()).Delete(x.ObjectMeta.GetName(), nil)
+		err := a.reconciler.Delete(context.TODO(), &x)
 		if err != nil {
-			log.Printf("error deleting %s/%s :  %v", x.ObjectMeta.GetNamespace(), x.ObjectMeta.GetName(), err)
+			log.Printf("error delete %s/%s :  %v", x.GetNamespace(), x.GetName(), err)
 		}
 	}
 }
 
-func createVirtualServices(virtualServices []istioapi.VirtualService) {
-	cfg := config.GetConfigOrDie() //TODO: inject?
-	istioclientset := istioapiclient.NewForConfigOrDie(cfg)
+func (a *IstioApplier) createVirtualServices(virtualServices []istioapi.VirtualService) {
 	for _, x := range virtualServices {
-		_, err := istioclientset.NetworkingV1alpha3().VirtualServices(x.ObjectMeta.GetNamespace()).Create(&x)
+		err := a.reconciler.Create(context.TODO(), &x)
 		if err != nil {
-			log.Printf("error create %s/%s :  %v", x.ObjectMeta.GetNamespace(), x.ObjectMeta.GetName(), err)
+			log.Printf("error create %s/%s :  %v", x.GetNamespace(), x.GetName(), err)
 		}
 	}
 }
 
-func updateVirtualServices(virtualServices []istioapi.VirtualService) {
-	cfg := config.GetConfigOrDie() //TODO: inject?
-	istioclientset := istioapiclient.NewForConfigOrDie(cfg)
+func (a *IstioApplier) updateVirtualServices(virtualServices []struct {
+	actual  istioapi.VirtualService
+	desired istioapi.VirtualService
+}) {
 	for _, x := range virtualServices {
-		_, err := istioclientset.NetworkingV1alpha3().VirtualServices(x.ObjectMeta.GetNamespace()).Update(&x)
+		tmp := x.actual.DeepCopy()
+		tmp.Spec = x.desired.Spec
+		err := a.reconciler.Update(context.TODO(), tmp)
 		if err != nil {
-			log.Printf("update create %s/%s :  %v", x.ObjectMeta.GetNamespace(), x.ObjectMeta.GetName(), err)
+			log.Printf("error update %s/%s :  %v", tmp.GetNamespace(), tmp.GetName(), err)
 		}
 	}
 }
 
-func deleteDestinationRules(destinationRules []istioapi.DestinationRule) {
-	cfg := config.GetConfigOrDie() //TODO: inject?
-	istioclientset := istioapiclient.NewForConfigOrDie(cfg)
+func (a *IstioApplier) deleteDestinationRules(destinationRules []istioapi.DestinationRule) {
 	for _, x := range destinationRules {
-		err := istioclientset.NetworkingV1alpha3().DestinationRules(x.ObjectMeta.GetNamespace()).Delete(x.ObjectMeta.GetName(), nil)
+		err := a.reconciler.Delete(context.TODO(), &x)
 		if err != nil {
-			log.Printf("error deleting %s/%s :  %v", x.ObjectMeta.GetNamespace(), x.ObjectMeta.GetName(), err)
+			log.Printf("error delete %s/%s :  %v", x.GetNamespace(), x.GetName(), err)
 		}
 	}
 }
 
-func createDestinationRules(destinationRules []istioapi.DestinationRule) {
-	cfg := config.GetConfigOrDie() //TODO: inject?
-	istioclientset := istioapiclient.NewForConfigOrDie(cfg)
+func (a *IstioApplier) createDestinationRules(destinationRules []istioapi.DestinationRule) {
 	for _, x := range destinationRules {
-		_, err := istioclientset.NetworkingV1alpha3().DestinationRules(x.ObjectMeta.GetNamespace()).Create(&x)
+		err := a.reconciler.Create(context.TODO(), &x)
 		if err != nil {
-			log.Printf("error create %s/%s :  %v", x.ObjectMeta.GetNamespace(), x.ObjectMeta.GetName(), err)
+			log.Printf("error create %s/%s :  %v", x.GetNamespace(), x.GetName(), err)
 		}
 	}
 }
 
-func updateDestinationRules(destinationRules []istioapi.DestinationRule) {
-	cfg := config.GetConfigOrDie() //TODO: inject?
-	istioclientset := istioapiclient.NewForConfigOrDie(cfg)
+func (a *IstioApplier) updateDestinationRules(destinationRules []struct {
+	actual  istioapi.DestinationRule
+	desired istioapi.DestinationRule
+}) {
 	for _, x := range destinationRules {
-		_, err := istioclientset.NetworkingV1alpha3().DestinationRules(x.ObjectMeta.GetNamespace()).Update(&x)
+		tmp := x.actual.DeepCopy()
+		tmp.Spec = x.desired.Spec
+		err := a.reconciler.Update(context.TODO(), tmp)
 		if err != nil {
-			log.Printf("error update %s/%s :  %v", x.ObjectMeta.GetNamespace(), x.ObjectMeta.GetName(), err)
+			log.Printf("error update %s/%s :  %v", tmp.GetNamespace(), tmp.GetName(), err)
 		}
 	}
 }
@@ -241,11 +335,17 @@ func triageCreate(existing []runtime.Object, desired []runtime.Object) (res []ru
 	return res
 }
 
-func triageUpdate(existing []runtime.Object, desired []runtime.Object) (res []runtime.Object) {
+func triageUpdate(existing []runtime.Object, desired []runtime.Object) (res []interface{}) {
 	for _, d := range desired {
-		if _, found := findObject(d, existing); found {
+		if obj, found := findObject(d, existing); found {
 			//if obj == d { //TODO: compare spec
-			res = append(res, d)
+			res = append(res, struct {
+				actual  runtime.Object
+				desired runtime.Object
+			}{
+				obj,
+				d,
+			})
 			//}
 		}
 	}
@@ -263,7 +363,7 @@ func findObject(obj runtime.Object, list []runtime.Object) (runtime.Object, bool
 	return nil, false
 }
 
-func getDesiredResources(entrypointFlows []models.EntrypointFlow, namespace string) (gateways []istioapi.Gateway, virtualServices []istioapi.VirtualService, destinationRules []istioapi.DestinationRule) {
+func (a *IstioApplier) getDesiredResources(entrypointFlows []models.EntrypointFlow, namespace string) (gateways []istioapi.Gateway, virtualServices []istioapi.VirtualService, destinationRules []istioapi.DestinationRule) {
 	gateways = make([]istioapi.Gateway, 0)
 	virtualServices = make([]istioapi.VirtualService, 0)
 	destinationRules = make([]istioapi.DestinationRule, 0)
@@ -285,41 +385,41 @@ func getDesiredResources(entrypointFlows []models.EntrypointFlow, namespace stri
 	return
 }
 
-func getActualResources(namespace string) ([]istioapi.Gateway, []istioapi.VirtualService, []istioapi.DestinationRule) {
-
-	// TODO: check why kube-controller's (controller-runtime's) client didn't work
-
-	// gatewayList := istioapi.GatewayList{}
-	// virtualServiceList := istioapi.VirtualServiceList{}
-	// destinationRuleList := istioapi.DestinationRuleList{}
-
-	// err = client.List(context.TODO(), nil, &gatewayList)
-	// if err != nil {
-	// 	log.Printf("%v", err)
-	// }
-	// err = client.List(context.TODO(), nil, &virtualServiceList)
-	// if err != nil {
-	// 	log.Printf("%v", err)
-	// }
-	// err = client.List(context.TODO(), nil, &destinationRuleList)
-	// if err != nil {
-	// 	log.Printf("%v", err)
-	// }
-
-	cfg := config.GetConfigOrDie() //TODO: inject?
-	istioclientset := istioapiclient.NewForConfigOrDie(cfg)
-	gatewayList, err := istioclientset.NetworkingV1alpha3().Gateways(namespace).List(metav1.ListOptions{})
-	if err != nil {
-		log.Fatal(err)
+func (a *IstioApplier) getActualResources(namespace string, reconciler client.Client) ([]istioapi.Gateway, []istioapi.VirtualService, []istioapi.DestinationRule) {
+	options := client.ListOptions{
+		Namespace: namespace,
 	}
-	virtualServiceList, err := istioclientset.NetworkingV1alpha3().VirtualServices(namespace).List(metav1.ListOptions{})
+	gatewayList := istioapi.GatewayList{}
+	virtualServiceList := istioapi.VirtualServiceList{}
+	destinationRuleList := istioapi.DestinationRuleList{}
+
+	err := reconciler.List(context.TODO(), &options, &gatewayList)
 	if err != nil {
-		log.Fatal(err)
+		log.Printf("%v", err)
 	}
-	destinationRuleList, err := istioclientset.NetworkingV1alpha3().DestinationRules(namespace).List(metav1.ListOptions{})
+	err = reconciler.List(context.TODO(), &options, &virtualServiceList)
 	if err != nil {
-		log.Fatal(err)
+		log.Printf("%v", err)
 	}
+	err = reconciler.List(context.TODO(), &options, &destinationRuleList)
+	if err != nil {
+		log.Printf("%v", err)
+	}
+
+	// cfg := config.GetConfigOrDie() //TODO: inject?
+	// istioclientset := istioapiclient.NewForConfigOrDie(cfg)
+	// gatewayList, err := istioclientset.NetworkingV1alpha3().Gateways(namespace).List(metav1.ListOptions{})
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+	// virtualServiceList, err := istioclientset.NetworkingV1alpha3().VirtualServices(namespace).List(metav1.ListOptions{})
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+	// destinationRuleList, err := istioclientset.NetworkingV1alpha3().DestinationRules(namespace).List(metav1.ListOptions{})
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
 
 	return gatewayList.Items, virtualServiceList.Items, destinationRuleList.Items
 }

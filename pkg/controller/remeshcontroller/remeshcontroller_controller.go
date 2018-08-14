@@ -20,6 +20,7 @@ import (
 	"context"
 	"log"
 
+	istioapi "github.com/bevyx/istio-api-go/pkg/apis/networking/v1alpha3"
 	remeshv1alpha1 "github.com/bevyx/remesh/pkg/apis/remesh/v1alpha1"
 	"github.com/bevyx/remesh/pkg/istio"
 	"github.com/bevyx/remesh/pkg/remesh"
@@ -65,6 +66,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
+	//TODO: watch child resources
 	// err = c.Watch(&source.Kind{Type: &istioapi.Gateway{}}, &handler.EnqueueRequestForOwner{
 	// 	IsController: true,
 	// 	OwnerType:    &remeshv1alpha1.Remesh{},
@@ -92,7 +94,7 @@ type ReconcileRemesh struct {
 // +kubebuilder:rbac:groups=remesh.bevyx.com,resources=virtualenvironments,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=networking.istio.io,resources=gateways,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=networking.istio.io,resources=virtualservices,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=networking.istio.io,resources=destinationrules,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:bac:groups=networking.istio.io,resources=destinationrules,verbs=get;list;watch;create;update;patch;delete
 func (r *ReconcileRemesh) Reconcile(request reconcile.Request) (reconcile.Result, error) {
 
 	virtualEnvironmentList, targetingList, entrypointList, err := r.fetchRemeshResources(request)
@@ -101,7 +103,9 @@ func (r *ReconcileRemesh) Reconcile(request reconcile.Request) (reconcile.Result
 	}
 
 	entrypointFlows := remesh.Combine(virtualEnvironmentList, targetingList, entrypointList)
-	istio.Apply(entrypointFlows, request.Namespace)
+	applier := istio.NewIstioApplier(request.Namespace, r)
+	istioapi.AddToScheme(r.scheme) //todo: this should be in the istio applier, but passing reconciler to istio would cause circular reference
+	applier.Apply(entrypointFlows)
 
 	return reconcile.Result{}, nil
 }

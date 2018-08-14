@@ -6,6 +6,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+//MakeIstioVirtualServices is
 func MakeIstioVirtualServices(transformedServices []istiomodels.TransformedService, namespace string, gateway string) []istioapi.VirtualService {
 	virtualServices := make([]istioapi.VirtualService, 0)
 	for _, transformedService := range transformedServices {

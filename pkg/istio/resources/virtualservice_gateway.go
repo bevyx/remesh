@@ -5,6 +5,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+//MakeIstioVirtualServiceForGateway is
 func MakeIstioVirtualServiceForGateway(httpRoutes []istioapi.HTTPRoute, namespace string, gateway string) (virtualService istioapi.VirtualService, virtualServiceName string) {
 	virtualServiceName = gateway + VsSuffix
 	virtualService = istioapi.VirtualService{
