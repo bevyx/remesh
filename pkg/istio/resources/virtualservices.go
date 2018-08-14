@@ -3,7 +3,6 @@ package resources
 import (
 	istioapi "github.com/bevyx/istio-api-go/pkg/apis/networking/v1alpha3"
 	istiomodels "github.com/bevyx/remesh/pkg/istio/models"
-	"github.com/davecgh/go-spew/spew"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -11,7 +10,6 @@ func MakeIstioVirtualServices(transformedServices []istiomodels.TransformedServi
 	virtualServices := make([]istioapi.VirtualService, 0)
 	for _, transformedService := range transformedServices {
 		vs := makeVirtualService(transformedService, namespace, gateway)
-		spew.Dump(vs)
 		virtualServices = append(virtualServices, makeVirtualService(transformedService, namespace, gateway))
 	}
 	return virtualServices

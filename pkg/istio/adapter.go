@@ -38,6 +38,7 @@ func Apply(entrypointFlows []models.EntrypointFlow, namespace string) {
 	for i, x := range actualGateways {
 		actualGatewaysObj[i] = x.DeepCopyObject()
 	}
+
 	gatewaysToDeleteObj := triageDelete(actualGatewaysObj, desiredGatewaysObj)
 	gatewaysToDelete := make([]istioapi.Gateway, len(gatewaysToDeleteObj))
 	for i, x := range gatewaysToDeleteObj {
@@ -45,13 +46,22 @@ func Apply(entrypointFlows []models.EntrypointFlow, namespace string) {
 	}
 	log.Printf("deleting %d gateways", len(gatewaysToDelete))
 	deleteGateways(gatewaysToDelete)
+
 	gatewaysToCreateObj := triageCreate(actualGatewaysObj, desiredGatewaysObj)
 	gatewaysToCreate := make([]istioapi.Gateway, len(gatewaysToCreateObj))
 	for i, x := range gatewaysToCreateObj {
 		gatewaysToCreate[i] = *x.(*istioapi.Gateway)
 	}
-	log.Printf("creating %d gateways", len(gatewaysToCreate))
+	log.Printf("updating %d gateways", len(gatewaysToCreate))
 	createGateways(gatewaysToCreate)
+
+	gatewaysToUpdateObj := triageUpdate(actualGatewaysObj, desiredGatewaysObj)
+	gatewaysToUpdate := make([]istioapi.Gateway, len(gatewaysToUpdateObj))
+	for i, x := range gatewaysToUpdateObj {
+		gatewaysToUpdate[i] = *x.(*istioapi.Gateway)
+	}
+	log.Printf("creating %d gateways", len(gatewaysToUpdate))
+	updateGateways(gatewaysToUpdate)
 
 	//VirtualService
 	desiredVirtualServicesObj := make([]runtime.Object, len(desiredVirtualServices))
@@ -62,6 +72,7 @@ func Apply(entrypointFlows []models.EntrypointFlow, namespace string) {
 	for i, x := range actualVirtualServices {
 		actualVirtualServicesObj[i] = x.DeepCopyObject()
 	}
+
 	virtualServicesToDeleteObj := triageDelete(actualVirtualServicesObj, desiredVirtualServicesObj)
 	virtualServicesToDelete := make([]istioapi.VirtualService, len(virtualServicesToDeleteObj))
 	for i, x := range virtualServicesToDeleteObj {
@@ -69,6 +80,7 @@ func Apply(entrypointFlows []models.EntrypointFlow, namespace string) {
 	}
 	log.Printf("deleting %d virtualservices", len(virtualServicesToDelete))
 	deleteVirtualServices(virtualServicesToDelete)
+
 	virtualServicesToCreateObj := triageCreate(actualVirtualServicesObj, desiredVirtualServicesObj)
 	virtualServicesToCreate := make([]istioapi.VirtualService, len(virtualServicesToCreateObj))
 	for i, x := range virtualServicesToCreateObj {
@@ -76,6 +88,14 @@ func Apply(entrypointFlows []models.EntrypointFlow, namespace string) {
 	}
 	log.Printf("creating %d virtualservices", len(virtualServicesToCreate))
 	createVirtualServices(virtualServicesToCreate)
+
+	virtualServicesToUpdateObj := triageUpdate(actualVirtualServicesObj, desiredVirtualServicesObj)
+	virtualServicesToUpdate := make([]istioapi.VirtualService, len(virtualServicesToUpdateObj))
+	for i, x := range virtualServicesToUpdateObj {
+		virtualServicesToUpdate[i] = *x.(*istioapi.VirtualService)
+	}
+	log.Printf("updating %d virtualservices", len(virtualServicesToUpdate))
+	updateVirtualServices(virtualServicesToUpdate)
 
 	//DestinationRule
 	desiredDestinationRulesObj := make([]runtime.Object, len(desiredDestinationRules))
@@ -86,6 +106,7 @@ func Apply(entrypointFlows []models.EntrypointFlow, namespace string) {
 	for i, x := range actualDestinationRules {
 		actualDestinationRulesObj[i] = x.DeepCopyObject()
 	}
+
 	destinationRulesToDeleteObj := triageDelete(actualDestinationRulesObj, desiredDestinationRulesObj)
 	destinationRulesToDelete := make([]istioapi.DestinationRule, len(destinationRulesToDeleteObj))
 	for i, x := range destinationRulesToDeleteObj {
@@ -93,13 +114,14 @@ func Apply(entrypointFlows []models.EntrypointFlow, namespace string) {
 	}
 	log.Printf("deleting %d destinationrules", len(destinationRulesToDelete))
 	deleteDestinationRules(destinationRulesToDelete)
-	destinationRulesToCreateObj := triageCreate(actualDestinationRulesObj, desiredDestinationRulesObj)
-	destinationRulesToCreate := make([]istioapi.DestinationRule, len(destinationRulesToCreateObj))
-	for i, x := range destinationRulesToCreateObj {
-		destinationRulesToCreate[i] = *x.(*istioapi.DestinationRule)
+
+	destinationRulesToUpdateObj := triageUpdate(actualDestinationRulesObj, desiredDestinationRulesObj)
+	destinationRulesToUpdate := make([]istioapi.DestinationRule, len(destinationRulesToUpdateObj))
+	for i, x := range destinationRulesToUpdateObj {
+		destinationRulesToUpdate[i] = *x.(*istioapi.DestinationRule)
 	}
-	log.Printf("creating %d destinationrules", len(destinationRulesToCreate))
-	createDestinationRules(destinationRulesToCreate)
+	log.Printf("updating %d destinationrules", len(destinationRulesToUpdate))
+	updateDestinationRules(destinationRulesToUpdate)
 }
 
 func deleteGateways(gateways []istioapi.Gateway) {
@@ -120,6 +142,17 @@ func createGateways(gateways []istioapi.Gateway) {
 		_, err := istioclientset.NetworkingV1alpha3().Gateways(x.ObjectMeta.GetNamespace()).Create(&x)
 		if err != nil {
 			log.Printf("error creating %s/%s :  %v", x.ObjectMeta.GetNamespace(), x.ObjectMeta.GetName(), err)
+		}
+	}
+}
+
+func updateGateways(gateways []istioapi.Gateway) {
+	cfg := config.GetConfigOrDie() //TODO: inject?
+	istioclientset := istioapiclient.NewForConfigOrDie(cfg)
+	for _, x := range gateways {
+		_, err := istioclientset.NetworkingV1alpha3().Gateways(x.ObjectMeta.GetNamespace()).Update(&x)
+		if err != nil {
+			log.Printf("error updating %s/%s :  %v", x.ObjectMeta.GetNamespace(), x.ObjectMeta.GetName(), err)
 		}
 	}
 }
@@ -146,6 +179,17 @@ func createVirtualServices(virtualServices []istioapi.VirtualService) {
 	}
 }
 
+func updateVirtualServices(virtualServices []istioapi.VirtualService) {
+	cfg := config.GetConfigOrDie() //TODO: inject?
+	istioclientset := istioapiclient.NewForConfigOrDie(cfg)
+	for _, x := range virtualServices {
+		_, err := istioclientset.NetworkingV1alpha3().VirtualServices(x.ObjectMeta.GetNamespace()).Update(&x)
+		if err != nil {
+			log.Printf("update create %s/%s :  %v", x.ObjectMeta.GetNamespace(), x.ObjectMeta.GetName(), err)
+		}
+	}
+}
+
 func deleteDestinationRules(destinationRules []istioapi.DestinationRule) {
 	cfg := config.GetConfigOrDie() //TODO: inject?
 	istioclientset := istioapiclient.NewForConfigOrDie(cfg)
@@ -168,9 +212,20 @@ func createDestinationRules(destinationRules []istioapi.DestinationRule) {
 	}
 }
 
+func updateDestinationRules(destinationRules []istioapi.DestinationRule) {
+	cfg := config.GetConfigOrDie() //TODO: inject?
+	istioclientset := istioapiclient.NewForConfigOrDie(cfg)
+	for _, x := range destinationRules {
+		_, err := istioclientset.NetworkingV1alpha3().DestinationRules(x.ObjectMeta.GetNamespace()).Update(&x)
+		if err != nil {
+			log.Printf("error update %s/%s :  %v", x.ObjectMeta.GetNamespace(), x.ObjectMeta.GetName(), err)
+		}
+	}
+}
+
 func triageDelete(existing []runtime.Object, desired []runtime.Object) (res []runtime.Object) {
 	for _, e := range existing {
-		if !objectExists(e, desired) {
+		if _, found := findObject(e, desired); !found {
 			res = append(res, e)
 		}
 	}
@@ -179,22 +234,33 @@ func triageDelete(existing []runtime.Object, desired []runtime.Object) (res []ru
 
 func triageCreate(existing []runtime.Object, desired []runtime.Object) (res []runtime.Object) {
 	for _, d := range desired {
-		if !objectExists(d, existing) {
+		if _, found := findObject(d, existing); !found {
 			res = append(res, d)
 		}
 	}
 	return res
 }
 
-func objectExists(obj runtime.Object, list []runtime.Object) bool {
+func triageUpdate(existing []runtime.Object, desired []runtime.Object) (res []runtime.Object) {
+	for _, d := range desired {
+		if _, found := findObject(d, existing); found {
+			//if obj == d { //TODO: compare spec
+			res = append(res, d)
+			//}
+		}
+	}
+	return res
+}
+
+func findObject(obj runtime.Object, list []runtime.Object) (runtime.Object, bool) {
 	for _, i := range list {
 		iAccessor, _ := meta.Accessor(i)
 		objAccessor, _ := meta.Accessor(obj)
 		if iAccessor.GetName() == objAccessor.GetName() {
-			return true
+			return i, true
 		}
 	}
-	return false
+	return nil, false
 }
 
 func getDesiredResources(entrypointFlows []models.EntrypointFlow, namespace string) (gateways []istioapi.Gateway, virtualServices []istioapi.VirtualService, destinationRules []istioapi.DestinationRule) {
@@ -213,9 +279,6 @@ func getDesiredResources(entrypointFlows []models.EntrypointFlow, namespace stri
 		transformedServices := TransformVirtualEnvironment(entrypointFlow.VirtualEnvironments)
 		transformedVirtualServices := resources.MakeIstioVirtualServices(transformedServices, namespace, virtualServiceName)
 		transformedDestinationRules := resources.MakeIstioDestinationRules(transformedServices, namespace)
-
-		//spew.Dump(transformedVirtualServices)
-
 		virtualServices = append(virtualServices, transformedVirtualServices...)
 		destinationRules = append(destinationRules, transformedDestinationRules...)
 	}
