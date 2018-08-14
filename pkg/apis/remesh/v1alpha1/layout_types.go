@@ -59,16 +59,16 @@ type StringMatch struct {
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-// VirtualEnvironmentSpec defines the desired state of VirtualEnvironment
-type VirtualEnvironmentSpec struct {
+// LayoutSpec defines the desired state of Layout
+type LayoutSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 	Http     []HTTPRoute `json:"http,omitempty"`
 	Services []Service   `json:"services,omitempty"`
 }
 
-// VirtualEnvironmentStatus defines the observed state of VirtualEnvironment
-type VirtualEnvironmentStatus struct {
+// LayoutStatus defines the observed state of Layout
+type LayoutStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 }
@@ -76,25 +76,25 @@ type VirtualEnvironmentStatus struct {
 // +genclient
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// VirtualEnvironment is the Schema for the virtualenvironments API
+// Layout is the Schema for the layouts API
 // +k8s:openapi-gen=true
-type VirtualEnvironment struct {
+type Layout struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   VirtualEnvironmentSpec   `json:"spec,omitempty"`
-	Status VirtualEnvironmentStatus `json:"status,omitempty"`
+	Spec   LayoutSpec   `json:"spec,omitempty"`
+	Status LayoutStatus `json:"status,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// VirtualEnvironmentList contains a list of VirtualEnvironment
-type VirtualEnvironmentList struct {
+// LayoutList contains a list of Layout
+type LayoutList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []VirtualEnvironment `json:"items"`
+	Items           []Layout `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&VirtualEnvironment{}, &VirtualEnvironmentList{})
+	SchemeBuilder.Register(&Layout{}, &LayoutList{})
 }

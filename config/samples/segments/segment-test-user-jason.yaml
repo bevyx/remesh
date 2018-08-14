@@ -1,0 +1,9 @@
+apiVersion: remesh.bevyx.com/v1alpha1
+kind: Segment
+metadata:
+  name: test-user-jason
+spec:
+  httpMatch:
+  - headers:
+      cookie:
+        regex: "^(.*?;)?(user=jason)(;.*)?$"

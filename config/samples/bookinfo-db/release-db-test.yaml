@@ -1,0 +1,11 @@
+apiVersion: remesh.bevyx.com/v1alpha1
+kind: Release
+metadata:
+  name: db-test
+spec:
+  entrypoint: bookinfo
+  targeting:
+    priority: 7
+    segments:
+    - test-user-jean 
+  layout: bookinfo-1-0-0-db

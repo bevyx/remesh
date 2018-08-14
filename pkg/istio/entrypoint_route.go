@@ -15,43 +15,43 @@ func MakeRouteForEntrypoint(entrypointFlow models.EntrypointFlow) []istioapi.HTT
 	copy(prioritizeTargetingFlows, entrypointFlow.TargetingFlows)
 	sort.Sort(models.ByPriority(prioritizeTargetingFlows))
 	for _, targetingFlow := range prioritizeTargetingFlows {
-		combainedIstioRouteList := makeCombainedIstioRouteList(targetingFlow.VirtualEnvironment, targetingFlow.Targeting)
+		combainedIstioRouteList := makeCombainedIstioRouteList(targetingFlow.Layout, targetingFlow.Targeting)
 		istioRouteList = append(istioRouteList, combainedIstioRouteList...)
 	}
-	defaultIstioRouteList := makeDefaultIstioRouteList(entrypointFlow.DefaultVirtualEnvironment)
+	defaultIstioRouteList := makeDefaultIstioRouteList(entrypointFlow.DefaultLayout)
 	istioRouteList = append(istioRouteList, defaultIstioRouteList...)
 
 	return istioRouteList
 }
 
-func makeCombainedIstioRouteList(virtualEnvironment api.VirtualEnvironment, targeting api.Targeting) []istioapi.HTTPRoute {
+func makeCombainedIstioRouteList(layout api.Layout, targeting api.Targeting) []istioapi.HTTPRoute {
 	istioRouteList := make([]istioapi.HTTPRoute, 0)
-	for _, veRoute := range virtualEnvironment.Spec.Http {
+	for _, veRoute := range layout.Spec.Http {
 		istioMatchList := make([]istioapi.HTTPMatchRequest, 0)
 		for _, veMatch := range veRoute.Match {
 			for _, targetingMatch := range targeting.Spec.Segment.HttpMatch {
 				istioMatchList = append(istioMatchList, combaineMatchesToIstioMatch(veMatch, targetingMatch))
 			}
 		}
-		istioRouteList = append(istioRouteList, makeIstioRoute(istioMatchList, veRoute.Destination.Host, veRoute.Destination.Port, targeting.Spec.VirtualEnvironment))
+		istioRouteList = append(istioRouteList, makeIstioRoute(istioMatchList, veRoute.Destination.Host, veRoute.Destination.Port, targeting.Spec.Layout))
 
 	}
 	return istioRouteList
 }
 
-func makeDefaultIstioRouteList(defaultVirtualEnvironment api.VirtualEnvironment) []istioapi.HTTPRoute {
+func makeDefaultIstioRouteList(defaultLayout api.Layout) []istioapi.HTTPRoute {
 	istioRouteList := make([]istioapi.HTTPRoute, 0)
-	for _, veRoute := range defaultVirtualEnvironment.Spec.Http {
+	for _, veRoute := range defaultLayout.Spec.Http {
 		istioMatchList := make([]istioapi.HTTPMatchRequest, 0)
 		for _, veMatch := range veRoute.Match {
 			istioMatchList = append(istioMatchList, combaineMatchesToIstioMatch(veMatch, api.HTTPMatchRequest{}))
 		}
-		istioRouteList = append(istioRouteList, makeIstioRoute(istioMatchList, veRoute.Destination.Host, veRoute.Destination.Port, defaultVirtualEnvironment.Name))
+		istioRouteList = append(istioRouteList, makeIstioRoute(istioMatchList, veRoute.Destination.Host, veRoute.Destination.Port, defaultLayout.Name))
 	}
 	return istioRouteList
 }
 
-func makeIstioRoute(istioMatchList []istioapi.HTTPMatchRequest, destinationHost string, destinationRoutePort *api.PortSelector, virtualEnvironmentName string) istioapi.HTTPRoute {
+func makeIstioRoute(istioMatchList []istioapi.HTTPMatchRequest, destinationHost string, destinationRoutePort *api.PortSelector, layoutName string) istioapi.HTTPRoute {
 	var port *istioapi.PortSelector
 	if destinationRoutePort != nil {
 		port = &istioapi.PortSelector{
@@ -70,7 +70,7 @@ func makeIstioRoute(istioMatchList []istioapi.HTTPMatchRequest, destinationHost 
 			},
 		},
 		AppendHeaders: map[string]string{
-			HeaderRouteName: virtualEnvironmentName,
+			HeaderRouteName: layoutName,
 		},
 	}
 }

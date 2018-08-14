@@ -48,8 +48,8 @@ type Server struct {
 type EntrypointSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
-	Servers                   []*Server `json:"servers,omitempty"`
-	DefaultVirtualEnvironment string    `json:"defaultVirtualEnvironment,omitempty"`
+	Servers       []*Server `json:"servers,omitempty"`
+	DefaultLayout string    `json:"defaultLayout,omitempty"`
 }
 
 // EntrypointStatus defines the observed state of Entrypoint

@@ -1,0 +1,11 @@
+apiVersion: remesh.bevyx.com/v1alpha1
+kind: Release
+metadata:
+  name: 1-1-0-test-user-jason
+spec:
+  entrypoint: bookinfo
+  targeting:
+    segments:
+    - test-user-jason
+    priority: 2
+  layout: bookinfo-1-1-0

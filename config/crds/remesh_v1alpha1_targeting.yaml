@@ -80,7 +80,7 @@ spec:
                     type: object
                   type: array
               type: object
-            virtualEnvironment:
+            layout:
               type: string
           type: object
         status:

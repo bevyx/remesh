@@ -9,14 +9,14 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func TestTransformVirtualEnvironment(t *testing.T) {
-	virtualEnvironments := []api.VirtualEnvironment{
-		api.VirtualEnvironment{
+func TestTransformLayout(t *testing.T) {
+	layouts := []api.Layout{
+		api.Layout{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "bookinfo",
 				Namespace: "default",
 			},
-			Spec: api.VirtualEnvironmentSpec{
+			Spec: api.LayoutSpec{
 				Http: []api.HTTPRoute{api.HTTPRoute{
 					Match: []api.HTTPMatchRequest{
 						api.HTTPMatchRequest{
@@ -61,12 +61,12 @@ func TestTransformVirtualEnvironment(t *testing.T) {
 					}},
 			},
 		},
-		api.VirtualEnvironment{
+		api.Layout{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "bookinfo-ratings",
 				Namespace: "default",
 			},
-			Spec: api.VirtualEnvironmentSpec{
+			Spec: api.LayoutSpec{
 				Http: []api.HTTPRoute{api.HTTPRoute{
 					Match: []api.HTTPMatchRequest{
 						api.HTTPMatchRequest{
@@ -118,14 +118,14 @@ func TestTransformVirtualEnvironment(t *testing.T) {
 			},
 		},
 	}
-	transformVirtualEnvironment := TransformVirtualEnvironment(virtualEnvironments)
-	//json, _ := json.MarshalIndent(transformVirtualEnvironment, "", "  ")
+	transformLayout := TransformLayout(layouts)
+	//json, _ := json.MarshalIndent(transformLayout, "", "  ")
 	//t.Logf("%s", string(json))
-	//t.Logf("%#v\n", &transformVirtualEnvironment)
+	//t.Logf("%#v\n", &transformLayout)
 
-	expcted := []models.TransformedService{models.TransformedService{Host: "productpage", ServiceSubsetList: []models.ServiceSubset{models.ServiceSubset{Labels: map[string]string{"version": "v1", "stam": "v1"}, SubsetHash: "599866b499", VirtualEnvironments: []string{"bookinfo", "bookinfo-ratings"}}}}, models.TransformedService{Host: "reviews", ServiceSubsetList: []models.ServiceSubset{models.ServiceSubset{Labels: map[string]string{"version": "v1"}, SubsetHash: "8444f85f99", VirtualEnvironments: []string{"bookinfo"}}, models.ServiceSubset{Labels: map[string]string{"version": "v2"}, SubsetHash: "84457d7684", VirtualEnvironments: []string{"bookinfo-ratings"}}}}, models.TransformedService{Host: "details", ServiceSubsetList: []models.ServiceSubset{models.ServiceSubset{Labels: map[string]string{"version": "v1"}, SubsetHash: "8444f85f99", VirtualEnvironments: []string{"bookinfo", "bookinfo-ratings"}}}}, models.TransformedService{Host: "ratings", ServiceSubsetList: []models.ServiceSubset{models.ServiceSubset{Labels: map[string]string{"version": "v1"}, SubsetHash: "8444f85f99", VirtualEnvironments: []string{"bookinfo-ratings"}}}}}
+	expcted := []models.TransformedService{models.TransformedService{Host: "productpage", ServiceSubsetList: []models.ServiceSubset{models.ServiceSubset{Labels: map[string]string{"version": "v1", "stam": "v1"}, SubsetHash: "599866b499", Layouts: []string{"bookinfo", "bookinfo-ratings"}}}}, models.TransformedService{Host: "reviews", ServiceSubsetList: []models.ServiceSubset{models.ServiceSubset{Labels: map[string]string{"version": "v1"}, SubsetHash: "8444f85f99", Layouts: []string{"bookinfo"}}, models.ServiceSubset{Labels: map[string]string{"version": "v2"}, SubsetHash: "84457d7684", Layouts: []string{"bookinfo-ratings"}}}}, models.TransformedService{Host: "details", ServiceSubsetList: []models.ServiceSubset{models.ServiceSubset{Labels: map[string]string{"version": "v1"}, SubsetHash: "8444f85f99", Layouts: []string{"bookinfo", "bookinfo-ratings"}}}}, models.TransformedService{Host: "ratings", ServiceSubsetList: []models.ServiceSubset{models.ServiceSubset{Labels: map[string]string{"version": "v1"}, SubsetHash: "8444f85f99", Layouts: []string{"bookinfo-ratings"}}}}}
 
-	if !reflect.DeepEqual(transformVirtualEnvironment, expcted) {
+	if !reflect.DeepEqual(transformLayout, expcted) {
 		t.Fail()
 	}
 }

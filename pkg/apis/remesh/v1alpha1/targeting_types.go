@@ -31,10 +31,10 @@ type Segment struct {
 type TargetingSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
-	Entrypoint         string  `json:"entrypoint,omitempty"`
-	Priority           int32   `json:"priority,omitempty"`
-	Segment            Segment `json:"segment,omitempty"`
-	VirtualEnvironment string  `json:"virtualEnvironment,omitempty"`
+	Entrypoint string  `json:"entrypoint,omitempty"`
+	Priority   int32   `json:"priority,omitempty"`
+	Segment    Segment `json:"segment,omitempty"`
+	Layout     string  `json:"layout,omitempty"`
 }
 
 // TargetingStatus defines the observed state of Targeting

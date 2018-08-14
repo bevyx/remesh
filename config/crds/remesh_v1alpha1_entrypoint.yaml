@@ -22,7 +22,7 @@ spec:
           type: object
         spec:
           properties:
-            defaultVirtualEnvironment:
+            defaultLayout:
               type: string
             servers:
               items:

@@ -8,7 +8,7 @@ type TransformedService struct {
 
 //ServiceSubset is
 type ServiceSubset struct {
-	Labels              map[string]string
-	SubsetHash          string
-	VirtualEnvironments []string
+	Labels     map[string]string
+	SubsetHash string
+	Layouts    []string
 }

@@ -1,7 +1,7 @@
 apiVersion: remesh.bevyx.com/v1alpha1
-kind: VirtualEnvironment
+kind: Layout
 metadata:
-  name: bookinfo-stars-red
+  name: bookinfo-1-0-0-db
 spec:
   http:
   - match:
@@ -26,7 +26,7 @@ spec:
       version: v3
   - host: ratings
     labels:
-      version: v1
+      version: v2
   - host: details
     labels:
       version: v1

@@ -1,0 +1,12 @@
+apiVersion: remesh.bevyx.com/v1alpha1
+kind: Release
+metadata:
+  name: redstars-test
+spec:
+  entrypoint: bookinfo
+  targeting:
+    segments:
+    names:
+    - test-user-jason
+    priority: 3
+  layout: bookinfo-1-1-0-redstars

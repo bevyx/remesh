@@ -5,15 +5,15 @@ import (
 )
 
 type TargetingFlow struct {
-	Targeting          api.Targeting
-	VirtualEnvironment api.VirtualEnvironment
+	Targeting api.Targeting
+	Layout    api.Layout
 }
 
 type EntrypointFlow struct {
-	Entrypoint                api.Entrypoint
-	DefaultVirtualEnvironment api.VirtualEnvironment
-	TargetingFlows            []TargetingFlow
-	VirtualEnvironments       []api.VirtualEnvironment
+	Entrypoint     api.Entrypoint
+	DefaultLayout  api.Layout
+	TargetingFlows []TargetingFlow
+	Layouts        []api.Layout
 }
 
 // ByPriority implements sort.Interface for []TargetingFlow based on

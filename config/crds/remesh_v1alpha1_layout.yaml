@@ -4,12 +4,12 @@ metadata:
   creationTimestamp: null
   labels:
     controller-tools.k8s.io: "1.0"
-  name: virtualenvironments.remesh.bevyx.com
+  name: layouts.remesh.bevyx.com
 spec:
   group: remesh.bevyx.com
   names:
-    kind: VirtualEnvironment
-    plural: virtualenvironments
+    kind: Layout
+    plural: layouts
   scope: Namespaced
   validation:
     openAPIV3Schema:

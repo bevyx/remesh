@@ -56,7 +56,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
-	err = c.Watch(&source.Kind{Type: &remeshv1alpha1.VirtualEnvironment{}}, &handler.EnqueueRequestForObject{})
+	err = c.Watch(&source.Kind{Type: &remeshv1alpha1.Layout{}}, &handler.EnqueueRequestForObject{})
 	if err != nil {
 		return err
 	}
@@ -91,18 +91,18 @@ type ReconcileRemesh struct {
 // +kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=remesh.bevyx.com,resources=entrypoints,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=remesh.bevyx.com,resources=targetings,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=remesh.bevyx.com,resources=virtualenvironments,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=remesh.bevyx.com,resources=layouts,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=networking.istio.io,resources=gateways,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=networking.istio.io,resources=virtualservices,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=networking.istio.io,resources=destinationrules,verbs=get;list;watch;create;update;patch;delete
 func (r *ReconcileRemesh) Reconcile(request reconcile.Request) (reconcile.Result, error) {
 
-	virtualEnvironmentList, targetingList, entrypointList, err := r.fetchRemeshResources(request)
+	layoutList, targetingList, entrypointList, err := r.fetchRemeshResources(request)
 	if err != nil {
 		return reconcile.Result{}, err
 	}
 
-	entrypointFlows := remesh.Combine(virtualEnvironmentList, targetingList, entrypointList)
+	entrypointFlows := remesh.Combine(layoutList, targetingList, entrypointList)
 	applier := istio.NewIstioApplier(request.Namespace, r)
 	istioapi.AddToScheme(r.scheme) //todo: this should be in the istio applier, but passing reconciler to istio would cause circular reference
 	applier.Apply(entrypointFlows)
@@ -110,12 +110,12 @@ func (r *ReconcileRemesh) Reconcile(request reconcile.Request) (reconcile.Result
 	return reconcile.Result{}, nil
 }
 
-func (r *ReconcileRemesh) fetchRemeshResources(request reconcile.Request) (virtualEnvironmentList remeshv1alpha1.VirtualEnvironmentList, targetingList remeshv1alpha1.TargetingList, entrypointList remeshv1alpha1.EntrypointList, err error) {
+func (r *ReconcileRemesh) fetchRemeshResources(request reconcile.Request) (layoutList remeshv1alpha1.LayoutList, targetingList remeshv1alpha1.TargetingList, entrypointList remeshv1alpha1.EntrypointList, err error) {
 	options := client.ListOptions{
 		Namespace: request.Namespace,
 	}
 	entrypointList = remeshv1alpha1.EntrypointList{}
-	virtualEnvironmentList = remeshv1alpha1.VirtualEnvironmentList{}
+	layoutList = remeshv1alpha1.LayoutList{}
 	targetingList = remeshv1alpha1.TargetingList{}
 
 	err = r.List(context.TODO(), &options, &entrypointList)
@@ -123,9 +123,9 @@ func (r *ReconcileRemesh) fetchRemeshResources(request reconcile.Request) (virtu
 		log.Printf("missing Entrypoints %v", err)
 		return
 	}
-	err = r.List(context.TODO(), &options, &virtualEnvironmentList)
+	err = r.List(context.TODO(), &options, &layoutList)
 	if err != nil {
-		log.Printf("missing VirtualEnvironments %v", err)
+		log.Printf("missing Layouts %v", err)
 		return
 	}
 	err = r.List(context.TODO(), &options, &targetingList)
@@ -133,6 +133,6 @@ func (r *ReconcileRemesh) fetchRemeshResources(request reconcile.Request) (virtu
 		log.Printf("missing Targetings %v", err)
 		//it's ok to not have targetings
 	}
-	log.Printf("fetched remesh resources: %d entrypoints, %d virtualenvironments, %d targetings", len(entrypointList.Items), len(virtualEnvironmentList.Items), len(targetingList.Items))
+	log.Printf("fetched remesh resources: %d entrypoints, %d layouts, %d targetings", len(entrypointList.Items), len(layoutList.Items), len(targetingList.Items))
 	return
 }

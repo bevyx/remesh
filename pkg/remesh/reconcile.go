@@ -7,28 +7,28 @@ import (
 
 func Reconcile() (err error) {
 
-	// entrypointFlows := combine(virtualEnvironmentList, targetingList, entrypointList)
+	// entrypointFlows := combine(layoutList, targetingList, entrypointList)
 	// istio.Apply(entrypointFlows, namespace)
 
 	return nil
 }
 
-func Combine(virtualEnvironmentList api.VirtualEnvironmentList, targetingList api.TargetingList, entrypointList api.EntrypointList) []models.EntrypointFlow {
+func Combine(layoutList api.LayoutList, targetingList api.TargetingList, entrypointList api.EntrypointList) []models.EntrypointFlow {
 	entrypointFlows := make([]models.EntrypointFlow, 0)
 	for _, entrypoint := range entrypointList.Items {
-		defaultVirtualEnvironment, ok := findVirtualEnvironment(entrypoint.Spec.DefaultVirtualEnvironment, virtualEnvironmentList.Items)
+		defaultLayout, ok := findLayout(entrypoint.Spec.DefaultLayout, layoutList.Items)
 		if ok {
 			targetings := getAllTargetingsByEntrypoint(entrypoint.ObjectMeta.Name, targetingList.Items)
-			targetingFlows, virtualEnvironmentSet := combineTargetingToVirtualEnvironments(targetings, virtualEnvironmentList.Items)
-			_, isDefaultInSet := findVirtualEnvironment(defaultVirtualEnvironment.Name, virtualEnvironmentSet)
+			targetingFlows, layoutSet := combineTargetingToLayouts(targetings, layoutList.Items)
+			_, isDefaultInSet := findLayout(defaultLayout.Name, layoutSet)
 			if !isDefaultInSet {
-				virtualEnvironmentSet = append(virtualEnvironmentSet, defaultVirtualEnvironment)
+				layoutSet = append(layoutSet, defaultLayout)
 			}
 			entrypointFlows = append(entrypointFlows, models.EntrypointFlow{
-				Entrypoint:                entrypoint,
-				DefaultVirtualEnvironment: defaultVirtualEnvironment,
-				TargetingFlows:            targetingFlows,
-				VirtualEnvironments:       virtualEnvironmentSet,
+				Entrypoint:     entrypoint,
+				DefaultLayout:  defaultLayout,
+				TargetingFlows: targetingFlows,
+				Layouts:        layoutSet,
 			})
 		} else {
 			// TODO: Notify that we are waiting for virtual env to be created
@@ -37,23 +37,23 @@ func Combine(virtualEnvironmentList api.VirtualEnvironmentList, targetingList ap
 	return entrypointFlows
 }
 
-func combineTargetingToVirtualEnvironments(targetings []api.Targeting, virtualEnvironments []api.VirtualEnvironment) ([]models.TargetingFlow, []api.VirtualEnvironment) {
+func combineTargetingToLayouts(targetings []api.Targeting, layouts []api.Layout) ([]models.TargetingFlow, []api.Layout) {
 	targetingFlows := make([]models.TargetingFlow, 0)
-	virtualEnvironmentMap := map[string]api.VirtualEnvironment{}
+	layoutMap := map[string]api.Layout{}
 	for _, targeting := range targetings {
-		virtualEnvironment, ok := findVirtualEnvironment(targeting.Spec.VirtualEnvironment, virtualEnvironments)
-		virtualEnvironmentMap[virtualEnvironment.Name] = virtualEnvironment
+		layout, ok := findLayout(targeting.Spec.Layout, layouts)
+		layoutMap[layout.Name] = layout
 		if ok {
 			targetingFlows = append(targetingFlows, models.TargetingFlow{
-				Targeting:          targeting,
-				VirtualEnvironment: virtualEnvironment})
+				Targeting: targeting,
+				Layout:    layout})
 		}
 	}
-	virtualEnvironmentSet := make([]api.VirtualEnvironment, 0)
-	for _, value := range virtualEnvironmentMap {
-		virtualEnvironmentSet = append(virtualEnvironmentSet, value)
+	layoutSet := make([]api.Layout, 0)
+	for _, value := range layoutMap {
+		layoutSet = append(layoutSet, value)
 	}
-	return targetingFlows, virtualEnvironmentSet
+	return targetingFlows, layoutSet
 }
 
 func getAllTargetingsByEntrypoint(entrypointName string, targetings []api.Targeting) []api.Targeting {
@@ -66,11 +66,11 @@ func getAllTargetingsByEntrypoint(entrypointName string, targetings []api.Target
 	return targetingsOfEntrypoint
 }
 
-func findVirtualEnvironment(name string, virtualEnvironments []api.VirtualEnvironment) (api.VirtualEnvironment, bool) {
-	for _, virtualEnvironment := range virtualEnvironments {
-		if virtualEnvironment.ObjectMeta.Name == name {
-			return virtualEnvironment, true
+func findLayout(name string, layouts []api.Layout) (api.Layout, bool) {
+	for _, layout := range layouts {
+		if layout.ObjectMeta.Name == name {
+			return layout, true
 		}
 	}
-	return api.VirtualEnvironment{}, false
+	return api.Layout{}, false
 }

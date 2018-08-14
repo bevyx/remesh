@@ -376,7 +376,7 @@ func (a *IstioApplier) getDesiredResources(entrypointFlows []models.EntrypointFl
 		gatewayVirtualService, virtualServiceName := resources.MakeIstioVirtualServiceForGateway(httpRoutes, namespace, gatewayName)
 		virtualServices = append(virtualServices, gatewayVirtualService)
 
-		transformedServices := TransformVirtualEnvironment(entrypointFlow.VirtualEnvironments)
+		transformedServices := TransformLayout(entrypointFlow.Layouts)
 		transformedVirtualServices := resources.MakeIstioVirtualServices(transformedServices, namespace, virtualServiceName)
 		transformedDestinationRules := resources.MakeIstioDestinationRules(transformedServices, namespace)
 		virtualServices = append(virtualServices, transformedVirtualServices...)

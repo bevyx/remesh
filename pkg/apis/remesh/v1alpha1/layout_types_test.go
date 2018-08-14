@@ -25,13 +25,13 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 )
 
-func TestStorageVirtualEnvironment(t *testing.T) {
+func TestStorageLayout(t *testing.T) {
 	key := types.NamespacedName{Name: "foo", Namespace: "default"}
-	created := &VirtualEnvironment{ObjectMeta: metav1.ObjectMeta{Name: "foo", Namespace: "default"}}
+	created := &Layout{ObjectMeta: metav1.ObjectMeta{Name: "foo", Namespace: "default"}}
 	g := gomega.NewGomegaWithT(t)
 
 	// Test Create
-	fetched := &VirtualEnvironment{}
+	fetched := &Layout{}
 	g.Expect(c.Create(context.TODO(), created)).NotTo(gomega.HaveOccurred())
 
 	g.Expect(c.Get(context.TODO(), key, fetched)).NotTo(gomega.HaveOccurred())

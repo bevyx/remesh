@@ -10,4 +10,3 @@ spec:
       protocol: HTTP
     hosts:
     - "*"
-  defaultVirtualEnvironment: bookinfo
