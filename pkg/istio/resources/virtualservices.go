@@ -47,7 +47,7 @@ func makeVirtualServiceSpec(transformedService istiomodels.TransformedService, n
 				Match: []istioapi.HTTPMatchRequest{
 					istioapi.HTTPMatchRequest{
 						Headers: map[string]istioapi.StringMatch{
-							"ol-route": istioapi.StringMatch{
+							HeaderRouteName: istioapi.StringMatch{
 								Exact: virtualEnvironment,
 							},
 						},

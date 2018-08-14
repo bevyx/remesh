@@ -21,7 +21,7 @@ func makeDestinationRule(transformedService istiomodels.TransformedService, name
 			APIVersion: "networking.istio.io/v1alpha3",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      Prefix + transformedService.Host + DsSuffix,
+			Name:      Prefix + transformedService.Host + DrSuffix,
 			Namespace: namespace,
 			/*OwnerReferences: []metav1.OwnerReference{
 				*metav1.NewControllerRef(&entrypoint, schema.GroupVersionKind{

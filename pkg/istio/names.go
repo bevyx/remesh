@@ -1,5 +1,5 @@
 package istio
 
 const (
-	HeaderRouteName = "ol-route"
+	HeaderRouteName = "x-re-route"
 )

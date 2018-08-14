@@ -1,7 +1,7 @@
 apiVersion: remesh.bevyx.com/v1alpha1
 kind: VirtualEnvironment
 metadata:
-  name: bookinfo-ratings
+  name: bookinfo-api
 spec:
   http:
   - match:
@@ -23,10 +23,10 @@ spec:
       version: v1
   - host: reviews
     labels:
-      version: v2
+      version: v3
   - host: ratings
     labels:
-      version: v1
+      version: v2
   - host: details
     labels:
-      version: v1
+      version: v2
