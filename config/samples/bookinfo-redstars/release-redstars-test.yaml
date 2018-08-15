@@ -3,7 +3,7 @@ kind: Release
 metadata:
   name: redstars-test
 spec:
-  entrypoint: bookinfo
+  virtualappconfig: bookinfo
   targeting:
     segments:
     names:

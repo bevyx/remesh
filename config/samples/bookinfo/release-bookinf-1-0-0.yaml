@@ -3,5 +3,5 @@ kind: Release
 metadata:
   name: default
 spec:
-  entrypoint: bookinfo
+  virtualappconfig: bookinfo
   layout: bookinfo-1-0-0

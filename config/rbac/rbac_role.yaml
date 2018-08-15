@@ -19,7 +19,43 @@ rules:
 - apiGroups:
   - remesh.bevyx.com
   resources:
-  - entrypoints
+  - virtualappconfigs
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - remesh.bevyx.com
+  resources:
+  - releases
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - remesh.bevyx.com
+  resources:
+  - virtualappconfigs
   verbs:
   - get
   - list
@@ -80,6 +116,54 @@ rules:
   - networking.istio.io
   resources:
   - destinationrules
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - remesh.bevyx.com
+  resources:
+  - segments
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - remesh.bevyx.com
+  resources:
+  - virtualapps
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - remesh.bevyx.com
+  resources:
+  - virtualappconfigs
   verbs:
   - get
   - list

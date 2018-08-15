@@ -25,7 +25,7 @@ func makeDestinationRule(transformedService istiomodels.TransformedService, name
 			Name:      Prefix + transformedService.Host + DrSuffix,
 			Namespace: namespace,
 			/*OwnerReferences: []metav1.OwnerReference{
-				*metav1.NewControllerRef(&entrypoint, schema.GroupVersionKind{
+				*metav1.NewControllerRef(&virtualappconfig, schema.GroupVersionKind{
 					Group:   api.SchemeGroupVersion.Group,
 					Version: api.SchemeGroupVersion.Version,
 					Kind:    "Layout",

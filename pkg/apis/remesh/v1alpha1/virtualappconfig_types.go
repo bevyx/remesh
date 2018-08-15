@@ -20,25 +20,39 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-type Targeting struct {
-	Segments []string `json:"segments,omitempty"`
-	Priority int32    `json:"priority,omitempty"`
+type Server_TLSOptions struct {
+	HttpsRedirect     bool     `json:"https_redirect,omitempty"`
+	Mode              string   `json:"mode,omitempty"`
+	ServerCertificate string   `json:"server_certificate,omitempty"`
+	PrivateKey        string   `json:"private_key,omitempty"`
+	CaCertificates    string   `json:"ca_certificates,omitempty"`
+	SubjectAltNames   []string `json:"subject_alt_names,omitempty"`
+}
+
+type Port struct {
+	Number   uint32 `json:"number,omitempty"`
+	Protocol string `json:"protocol,omitempty"`
+	Name     string `json:"name,omitempty"`
+}
+
+type Server struct {
+	Port  *Port              `json:"port,omitempty"`
+	Hosts []string           `json:"hosts,omitempty"`
+	Tls   *Server_TLSOptions `json:"tls,omitempty"`
 }
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-// ReleaseSpec defines the desired state of Release
-type ReleaseSpec struct {
+// VirtualAppConfigSpec defines the desired state of VirtualAppConfig
+type VirtualAppConfigSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
-	VirtualAppConfig string     `json:"virtualappconfig,omitempty"`
-	Targeting        *Targeting `json:"segment,omitempty"`
-	Layout           string     `json:"layout,omitempty"`
+	Servers []*Server `json:"servers,omitempty"`
 }
 
-// ReleaseStatus defines the observed state of Release
-type ReleaseStatus struct {
+// VirtualAppConfigStatus defines the observed state of VirtualAppConfig
+type VirtualAppConfigStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 }
@@ -46,25 +60,25 @@ type ReleaseStatus struct {
 // +genclient
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// Release is the Schema for the Releases API
+// VirtualAppConfig is the Schema for the virtualappconfigs API
 // +k8s:openapi-gen=true
-type Release struct {
+type VirtualAppConfig struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   ReleaseSpec   `json:"spec,omitempty"`
-	Status ReleaseStatus `json:"status,omitempty"`
+	Spec   VirtualAppConfigSpec   `json:"spec,omitempty"`
+	Status VirtualAppConfigStatus `json:"status,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// ReleaseList contains a list of Release
-type ReleaseList struct {
+// VirtualAppConfigList contains a list of VirtualAppConfig
+type VirtualAppConfigList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []Release `json:"items"`
+	Items           []VirtualAppConfig `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&Release{}, &ReleaseList{})
+	SchemeBuilder.Register(&VirtualAppConfig{}, &VirtualAppConfigList{})
 }

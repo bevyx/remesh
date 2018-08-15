@@ -3,7 +3,7 @@ kind: Release
 metadata:
   name: db-test
 spec:
-  entrypoint: bookinfo
+  virtualappconfig: bookinfo
   targeting:
     priority: 7
     segments:

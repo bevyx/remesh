@@ -1,5 +1,5 @@
 apiVersion: remesh.bevyx.com/v1alpha1
-kind: Entrypoint
+kind: VirtualAppConfig
 metadata:
   name: bookinfo
 spec:

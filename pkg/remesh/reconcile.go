@@ -5,29 +5,29 @@ import (
 	"github.com/bevyx/remesh/pkg/models"
 )
 
-func Combine(layoutList api.LayoutList, releaseList api.ReleaseList, segmentList api.SegmentList, entrypointList api.EntrypointList) []models.EntrypointFlow {
-	entrypointFlows := make([]models.EntrypointFlow, 0)
-	for _, entrypoint := range entrypointList.Items {
-		releases := findReleasesByEntrypoint(entrypoint.Name, releaseList.Items)
+func Combine(layoutList api.LayoutList, releaseList api.ReleaseList, segmentList api.SegmentList, virtualappconfigList api.VirtualAppConfigList) []models.VirtualAppConfigFlow {
+	virtualappconfigFlows := make([]models.VirtualAppConfigFlow, 0)
+	for _, virtualappconfig := range virtualappconfigList.Items {
+		releases := findReleasesByVirtualAppConfig(virtualappconfig.Name, releaseList.Items)
 		if len(releases) > 0 {
 			releaseFlows := combineReleasesToSegmentsAndLayouts(releases, segmentList.Items, layoutList.Items)
 			if len(releaseFlows) > 0 {
-				layoutSet := getLayoutSetOfEntrypointFlow(releaseFlows)
-				entrypointFlows = append(entrypointFlows, models.EntrypointFlow{
-					Entrypoint:   entrypoint,
-					ReleaseFlows: releaseFlows,
-					Layouts:      layoutSet,
+				layoutSet := getLayoutSetOfVirtualAppConfigFlow(releaseFlows)
+				virtualappconfigFlows = append(virtualappconfigFlows, models.VirtualAppConfigFlow{
+					VirtualAppConfig: virtualappconfig,
+					ReleaseFlows:     releaseFlows,
+					Layouts:          layoutSet,
 				})
 			} else {
-				// TODO: notify entrypoint wans't created at all. Waiting for some releases to be ready
+				// TODO: notify virtualappconfig wans't created at all. Waiting for some releases to be ready
 			}
 
 		} else {
-			// TODO: notify entrypoint wans't created at all. Waiting for some releases to be created
+			// TODO: notify virtualappconfig wans't created at all. Waiting for some releases to be created
 		}
 
 	}
-	return entrypointFlows
+	return virtualappconfigFlows
 }
 
 func combineReleasesToSegmentsAndLayouts(releases []api.Release, segments []api.Segment, layouts []api.Layout) (releaseFlows []models.ReleaseFlow) {
@@ -69,7 +69,7 @@ func combineOneReleaseToSegmentsAndALayout(release api.Release, segments []api.S
 	return
 }
 
-func getLayoutSetOfEntrypointFlow(releaseFlows []models.ReleaseFlow) (layoutSet []api.Layout) {
+func getLayoutSetOfVirtualAppConfigFlow(releaseFlows []models.ReleaseFlow) (layoutSet []api.Layout) {
 	layoutMap := map[string]api.Layout{}
 	for _, releaseFlow := range releaseFlows {
 		layoutMap[releaseFlow.Layout.Name] = releaseFlow.Layout
@@ -115,10 +115,10 @@ func findSegment(name string, segments []api.Segment) *api.Segment {
 	return nil
 }
 
-func findReleasesByEntrypoint(entrypoint string, releases []api.Release) []api.Release {
+func findReleasesByVirtualAppConfig(virtualappconfig string, releases []api.Release) []api.Release {
 	found := make([]api.Release, 0)
 	for _, release := range releases {
-		if release.Spec.Entrypoint == entrypoint {
+		if release.Spec.VirtualAppConfig == virtualappconfig {
 			found = append(found, release)
 		}
 	}

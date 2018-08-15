@@ -8,11 +8,11 @@ import (
 	"github.com/bevyx/remesh/pkg/models"
 )
 
-//MakeRouteForEntrypoint is
-func MakeRouteForEntrypoint(entrypointFlow models.EntrypointFlow) []istioapi.HTTPRoute {
+//MakeRouteForVirtualAppConfig is
+func MakeRouteForVirtualAppConfig(virtualappconfigFlow models.VirtualAppConfigFlow) []istioapi.HTTPRoute {
 	istioRouteList := make([]istioapi.HTTPRoute, 0)
-	prioritizedReleaseFlows := make([]models.ReleaseFlow, len(entrypointFlow.ReleaseFlows))
-	copy(prioritizedReleaseFlows, entrypointFlow.ReleaseFlows)
+	prioritizedReleaseFlows := make([]models.ReleaseFlow, len(virtualappconfigFlow.ReleaseFlows))
+	copy(prioritizedReleaseFlows, virtualappconfigFlow.ReleaseFlows)
 	sort.Sort(models.ByPriority(prioritizedReleaseFlows))
 	for _, releaseFlow := range prioritizedReleaseFlows {
 		if len(releaseFlow.Segments) == 0 {
@@ -23,7 +23,7 @@ func MakeRouteForEntrypoint(entrypointFlow models.EntrypointFlow) []istioapi.HTT
 			istioRouteList = append(istioRouteList, combainedIstioRouteList...)
 		}
 	}
-	//defaultIstioRouteList := makeDefaultIstioRouteList(entrypointFlow.DefaultLayout)
+	//defaultIstioRouteList := makeDefaultIstioRouteList(virtualappconfigFlow.DefaultLayout)
 	//istioRouteList = append(istioRouteList, defaultIstioRouteList...)
 
 	return istioRouteList

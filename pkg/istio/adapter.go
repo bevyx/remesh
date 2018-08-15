@@ -30,9 +30,9 @@ func NewIstioApplier(namespace string, reconciler client.Client) IstioApplier {
 }
 
 //Apply is
-func (a *IstioApplier) Apply(entrypointFlows []models.EntrypointFlow) {
-	log.Printf("applying %d entrypointFlows", len(entrypointFlows))
-	desiredGateways, desiredVirtualServices, desiredDestinationRules := a.getDesiredResources(entrypointFlows, a.namespace)
+func (a *IstioApplier) Apply(virtualappconfigFlows []models.VirtualAppConfigFlow) {
+	log.Printf("applying %d virtualappconfigFlows", len(virtualappconfigFlows))
+	desiredGateways, desiredVirtualServices, desiredDestinationRules := a.getDesiredResources(virtualappconfigFlows, a.namespace)
 	log.Printf("desired: gateways %d, virtualservices: %d, destinationrules %d", len(desiredGateways), len(desiredVirtualServices), len(desiredDestinationRules))
 	actualGateways, actualVirtualServices, actualDestinationRules := a.getActualResources(a.namespace, a.reconciler)
 	log.Printf("actual: gateways %d, virtualservices: %d, destinationrules %d", len(actualGateways), len(actualVirtualServices), len(actualDestinationRules))
@@ -363,20 +363,20 @@ func findObject(obj runtime.Object, list []runtime.Object) (runtime.Object, bool
 	return nil, false
 }
 
-func (a *IstioApplier) getDesiredResources(entrypointFlows []models.EntrypointFlow, namespace string) (gateways []istioapi.Gateway, virtualServices []istioapi.VirtualService, destinationRules []istioapi.DestinationRule) {
+func (a *IstioApplier) getDesiredResources(virtualappconfigFlows []models.VirtualAppConfigFlow, namespace string) (gateways []istioapi.Gateway, virtualServices []istioapi.VirtualService, destinationRules []istioapi.DestinationRule) {
 	gateways = make([]istioapi.Gateway, 0)
 	virtualServices = make([]istioapi.VirtualService, 0)
 	destinationRules = make([]istioapi.DestinationRule, 0)
 
-	for _, entrypointFlow := range entrypointFlows {
-		gateway, gatewayName := resources.MakeIstioGateway(entrypointFlow.Entrypoint, namespace)
+	for _, virtualappconfigFlow := range virtualappconfigFlows {
+		gateway, gatewayName := resources.MakeIstioGateway(virtualappconfigFlow.VirtualAppConfig, namespace)
 		gateways = append(gateways, gateway)
 
-		httpRoutes := MakeRouteForEntrypoint(entrypointFlow)
+		httpRoutes := MakeRouteForVirtualAppConfig(virtualappconfigFlow)
 		gatewayVirtualService, virtualServiceName := resources.MakeIstioVirtualServiceForGateway(httpRoutes, namespace, gatewayName)
 		virtualServices = append(virtualServices, gatewayVirtualService)
 
-		transformedServices := TransformLayout(entrypointFlow.Layouts)
+		transformedServices := TransformLayout(virtualappconfigFlow.Layouts)
 		transformedVirtualServices := resources.MakeIstioVirtualServices(transformedServices, namespace, virtualServiceName)
 		transformedDestinationRules := resources.MakeIstioDestinationRules(transformedServices, namespace)
 		virtualServices = append(virtualServices, transformedVirtualServices...)

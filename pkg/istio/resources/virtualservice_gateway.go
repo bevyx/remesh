@@ -17,7 +17,7 @@ func MakeIstioVirtualServiceForGateway(httpRoutes []istioapi.HTTPRoute, namespac
 			Name:      virtualServiceName,
 			Namespace: namespace,
 			/*OwnerReferences: []metav1.OwnerReference{
-				*metav1.NewControllerRef(&entrypoint, schema.GroupVersionKind{
+				*metav1.NewControllerRef(&virtualappconfig, schema.GroupVersionKind{
 					Group:   api.SchemeGroupVersion.Group,
 					Version: api.SchemeGroupVersion.Version,
 					Kind:    "Layout",

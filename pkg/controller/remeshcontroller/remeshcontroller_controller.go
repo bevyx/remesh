@@ -51,7 +51,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
-	err = c.Watch(&source.Kind{Type: &remeshv1alpha1.Entrypoint{}}, &handler.EnqueueRequestForObject{})
+	err = c.Watch(&source.Kind{Type: &remeshv1alpha1.VirtualAppConfig{}}, &handler.EnqueueRequestForObject{})
 	if err != nil {
 		return err
 	}
@@ -94,7 +94,7 @@ type ReconcileRemesh struct {
 // Reconcile reads that state of the cluster for a Remesh object and makes changes based on the state read
 // and what is in the Remesh.Spec
 // +kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=remesh.bevyx.com,resources=entrypoints,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=remesh.bevyx.com,resources=virtualappconfigs,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=remesh.bevyx.com,resources=targetings,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=remesh.bevyx.com,resources=layouts,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=networking.istio.io,resources=gateways,verbs=get;list;watch;create;update;patch;delete
@@ -102,31 +102,31 @@ type ReconcileRemesh struct {
 // +kubebuilder:rbac:groups=networking.istio.io,resources=destinationrules,verbs=get;list;watch;create;update;patch;delete
 func (r *ReconcileRemesh) Reconcile(request reconcile.Request) (reconcile.Result, error) {
 
-	layoutList, releaseList, segmentList, entrypointList, err := r.fetchRemeshResources(request)
+	layoutList, releaseList, segmentList, virtualappconfigList, err := r.fetchRemeshResources(request)
 	if err != nil {
 		return reconcile.Result{}, err
 	}
 
-	entrypointFlows := remesh.Combine(layoutList, releaseList, segmentList, entrypointList)
+	virtualappconfigFlows := remesh.Combine(layoutList, releaseList, segmentList, virtualappconfigList)
 	applier := istio.NewIstioApplier(request.Namespace, r)
 	istioapi.AddToScheme(r.scheme) //todo: this should be in the istio applier, but passing reconciler to istio would cause circular reference
-	applier.Apply(entrypointFlows)
+	applier.Apply(virtualappconfigFlows)
 
 	return reconcile.Result{}, nil
 }
 
-func (r *ReconcileRemesh) fetchRemeshResources(request reconcile.Request) (layoutList remeshv1alpha1.LayoutList, releaseList remeshv1alpha1.ReleaseList, segmentList remeshv1alpha1.SegmentList, entrypointList remeshv1alpha1.EntrypointList, err error) {
+func (r *ReconcileRemesh) fetchRemeshResources(request reconcile.Request) (layoutList remeshv1alpha1.LayoutList, releaseList remeshv1alpha1.ReleaseList, segmentList remeshv1alpha1.SegmentList, virtualappconfigList remeshv1alpha1.VirtualAppConfigList, err error) {
 	options := client.ListOptions{
 		Namespace: request.Namespace,
 	}
-	entrypointList = remeshv1alpha1.EntrypointList{}
+	virtualappconfigList = remeshv1alpha1.VirtualAppConfigList{}
 	layoutList = remeshv1alpha1.LayoutList{}
 	releaseList = remeshv1alpha1.ReleaseList{}
 	segmentList = remeshv1alpha1.SegmentList{}
 
-	err = r.List(context.TODO(), &options, &entrypointList)
+	err = r.List(context.TODO(), &options, &virtualappconfigList)
 	if err != nil {
-		log.Printf("missing Entrypoints %v", err)
+		log.Printf("missing VirtualAppConfigs %v", err)
 		return
 	}
 	err = r.List(context.TODO(), &options, &layoutList)
@@ -143,6 +143,6 @@ func (r *ReconcileRemesh) fetchRemeshResources(request reconcile.Request) (layou
 		log.Printf("missing Segments %v", err)
 		//it's ok to not have segments
 	}
-	log.Printf("fetched remesh resources: %d entrypoints, %d layouts, %d releases, %d segments", len(entrypointList.Items), len(layoutList.Items), len(releaseList.Items), len(segmentList.Items))
+	log.Printf("fetched remesh resources: %d virtualappconfigs, %d layouts, %d releases, %d segments", len(virtualappconfigList.Items), len(layoutList.Items), len(releaseList.Items), len(segmentList.Items))
 	return
 }

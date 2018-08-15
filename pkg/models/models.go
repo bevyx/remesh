@@ -10,10 +10,10 @@ type ReleaseFlow struct {
 	Layout   api.Layout
 }
 
-type EntrypointFlow struct {
-	Entrypoint   api.Entrypoint
-	ReleaseFlows []ReleaseFlow
-	Layouts      []api.Layout
+type VirtualAppConfigFlow struct {
+	VirtualAppConfig api.VirtualAppConfig
+	ReleaseFlows     []ReleaseFlow
+	Layouts          []api.Layout
 }
 
 // ByPriority implements sort.Interface for []ReleaseFlow based on

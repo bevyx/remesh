@@ -4,12 +4,12 @@ metadata:
   creationTimestamp: null
   labels:
     controller-tools.k8s.io: "1.0"
-  name: releases.remesh.bevyx.com
+  name: virtualapps.remesh.bevyx.com
 spec:
   group: remesh.bevyx.com
   names:
-    kind: Release
-    plural: releases
+    kind: VirtualApp
+    plural: virtualapps
   scope: Namespaced
   validation:
     openAPIV3Schema:
@@ -21,21 +21,6 @@ spec:
         metadata:
           type: object
         spec:
-          properties:
-            layout:
-              type: string
-            segment:
-              properties:
-                priority:
-                  format: int32
-                  type: integer
-                segments:
-                  items:
-                    type: string
-                  type: array
-              type: object
-            virtualappconfig:
-              type: string
           type: object
         status:
           type: object

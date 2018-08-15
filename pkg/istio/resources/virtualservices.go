@@ -25,7 +25,7 @@ func makeVirtualService(transformedService istiomodels.TransformedService, names
 			Name:      Prefix + transformedService.Host + VsSuffix,
 			Namespace: namespace,
 			/*OwnerReferences: []metav1.OwnerReference{
-				*metav1.NewControllerRef(&entrypoint, schema.GroupVersionKind{
+				*metav1.NewControllerRef(&virtualappconfig, schema.GroupVersionKind{
 					Group:   api.SchemeGroupVersion.Group,
 					Version: api.SchemeGroupVersion.Version,
 					Kind:    "Layout",
