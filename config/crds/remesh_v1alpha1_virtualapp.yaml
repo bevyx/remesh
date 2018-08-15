@@ -21,6 +21,189 @@ spec:
         metadata:
           type: object
         spec:
+          properties:
+            releaseFlows:
+              items:
+                properties:
+                  layout:
+                    properties:
+                      http:
+                        items:
+                          properties:
+                            destination:
+                              properties:
+                                host:
+                                  type: string
+                                port:
+                                  properties:
+                                    number:
+                                      format: int32
+                                      type: integer
+                                  type: object
+                              type: object
+                            match:
+                              items:
+                                properties:
+                                  authority:
+                                    properties:
+                                      exact:
+                                        type: string
+                                      prefix:
+                                        type: string
+                                      regex:
+                                        type: string
+                                    type: object
+                                  gateways:
+                                    items:
+                                      type: string
+                                    type: array
+                                  headers:
+                                    type: object
+                                  method:
+                                    properties:
+                                      exact:
+                                        type: string
+                                      prefix:
+                                        type: string
+                                      regex:
+                                        type: string
+                                    type: object
+                                  port:
+                                    format: int32
+                                    type: integer
+                                  scheme:
+                                    properties:
+                                      exact:
+                                        type: string
+                                      prefix:
+                                        type: string
+                                      regex:
+                                        type: string
+                                    type: object
+                                  uri:
+                                    properties:
+                                      exact:
+                                        type: string
+                                      prefix:
+                                        type: string
+                                      regex:
+                                        type: string
+                                    type: object
+                                type: object
+                              type: array
+                          type: object
+                        type: array
+                      services:
+                        items:
+                          properties:
+                            host:
+                              type: string
+                            labels:
+                              type: object
+                          type: object
+                        type: array
+                    type: object
+                  release:
+                    properties:
+                      layout:
+                        type: string
+                      segment:
+                        properties:
+                          priority:
+                            format: int32
+                            type: integer
+                          segments:
+                            items:
+                              type: string
+                            type: array
+                        type: object
+                      virtualappconfig:
+                        type: string
+                    type: object
+                  segments:
+                    items:
+                      properties:
+                        httpMatch:
+                          items:
+                            properties:
+                              authority:
+                                properties:
+                                  exact:
+                                    type: string
+                                  prefix:
+                                    type: string
+                                  regex:
+                                    type: string
+                                type: object
+                              gateways:
+                                items:
+                                  type: string
+                                type: array
+                              headers:
+                                type: object
+                              method:
+                                properties:
+                                  exact:
+                                    type: string
+                                  prefix:
+                                    type: string
+                                  regex:
+                                    type: string
+                                type: object
+                              port:
+                                format: int32
+                                type: integer
+                              scheme:
+                                properties:
+                                  exact:
+                                    type: string
+                                  prefix:
+                                    type: string
+                                  regex:
+                                    type: string
+                                type: object
+                              uri:
+                                properties:
+                                  exact:
+                                    type: string
+                                  prefix:
+                                    type: string
+                                  regex:
+                                    type: string
+                                type: object
+                            type: object
+                          type: array
+                      type: object
+                    type: array
+                type: object
+              type: array
+            virtualAppConfig:
+              properties:
+                servers:
+                  items:
+                    properties:
+                      hosts:
+                        items:
+                          type: string
+                        type: array
+                      port:
+                        properties:
+                          name:
+                            type: string
+                          number:
+                            format: int32
+                            type: integer
+                          protocol:
+                            type: string
+                        type: object
+                      tls:
+                        properties:
+                          mode:
+                            type: string
+                        type: object
+                    type: object
+                  type: array
+              type: object
           type: object
         status:
           type: object

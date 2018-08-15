@@ -31,6 +31,18 @@ rules:
 - apiGroups:
   - remesh.bevyx.com
   resources:
+  - layouts
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - remesh.bevyx.com
+  resources:
   - releases
   verbs:
   - get
@@ -152,6 +164,42 @@ rules:
   - remesh.bevyx.com
   resources:
   - virtualapps
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - networking.istio.io
+  resources:
+  - gateways
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - networking.istio.io
+  resources:
+  - virtualservices
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - networking.istio.io
+  resources:
+  - destinationrules
   verbs:
   - get
   - list

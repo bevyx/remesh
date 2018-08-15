@@ -96,6 +96,9 @@ type ReconcileVirtualApp struct {
 // Automatically generate RBAC rules to allow the Controller to read and write Deployments
 // +kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=remesh.bevyx.com,resources=virtualapps,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=networking.istio.io,resources=gateways,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=networking.istio.io,resources=virtualservices,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=networking.istio.io,resources=destinationrules,verbs=get;list;watch;create;update;patch;delete
 func (r *ReconcileVirtualApp) Reconcile(request reconcile.Request) (reconcile.Result, error) {
 	// Fetch the VirtualApp instance
 	instance := &remeshv1alpha1.VirtualApp{}
