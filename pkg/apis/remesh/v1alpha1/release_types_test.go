@@ -25,13 +25,13 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 )
 
-func TestStorageTargeting(t *testing.T) {
+func TestStorageRelease(t *testing.T) {
 	key := types.NamespacedName{Name: "foo", Namespace: "default"}
-	created := &Targeting{ObjectMeta: metav1.ObjectMeta{Name: "foo", Namespace: "default"}}
+	created := &Release{ObjectMeta: metav1.ObjectMeta{Name: "foo", Namespace: "default"}}
 	g := gomega.NewGomegaWithT(t)
 
 	// Test Create
-	fetched := &Targeting{}
+	fetched := &Release{}
 	g.Expect(c.Create(context.TODO(), created)).NotTo(gomega.HaveOccurred())
 
 	g.Expect(c.Get(context.TODO(), key, fetched)).NotTo(gomega.HaveOccurred())

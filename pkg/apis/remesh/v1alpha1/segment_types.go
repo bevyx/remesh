@@ -20,39 +20,18 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-type Server_TLSOptions struct {
-	HttpsRedirect     bool     `json:"https_redirect,omitempty"`
-	Mode              string   `json:"mode,omitempty"`
-	ServerCertificate string   `json:"server_certificate,omitempty"`
-	PrivateKey        string   `json:"private_key,omitempty"`
-	CaCertificates    string   `json:"ca_certificates,omitempty"`
-	SubjectAltNames   []string `json:"subject_alt_names,omitempty"`
-}
-
-type Port struct {
-	Number   uint32 `json:"number,omitempty"`
-	Protocol string `json:"protocol,omitempty"`
-	Name     string `json:"name,omitempty"`
-}
-
-type Server struct {
-	Port  *Port              `json:"port,omitempty"`
-	Hosts []string           `json:"hosts,omitempty"`
-	Tls   *Server_TLSOptions `json:"tls,omitempty"`
-}
-
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-// EntrypointSpec defines the desired state of Entrypoint
-type EntrypointSpec struct {
+// SegmentSpec defines the desired state of Segment
+type SegmentSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
-	Servers []*Server `json:"servers,omitempty"`
+	HttpMatch []HTTPMatchRequest `json:"httpMatch,omitempty"`
 }
 
-// EntrypointStatus defines the observed state of Entrypoint
-type EntrypointStatus struct {
+// SegmentStatus defines the observed state of Segment
+type SegmentStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 }
@@ -60,25 +39,25 @@ type EntrypointStatus struct {
 // +genclient
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// Entrypoint is the Schema for the entrypoints API
+// Segment is the Schema for the Segments API
 // +k8s:openapi-gen=true
-type Entrypoint struct {
+type Segment struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   EntrypointSpec   `json:"spec,omitempty"`
-	Status EntrypointStatus `json:"status,omitempty"`
+	Spec   SegmentSpec   `json:"spec,omitempty"`
+	Status SegmentStatus `json:"status,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// EntrypointList contains a list of Entrypoint
-type EntrypointList struct {
+// SegmentList contains a list of Segment
+type SegmentList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []Entrypoint `json:"items"`
+	Items           []Segment `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&Entrypoint{}, &EntrypointList{})
+	SchemeBuilder.Register(&Segment{}, &SegmentList{})
 }

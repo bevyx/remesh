@@ -1,0 +1,7 @@
+apiVersion: remesh.bevyx.com/v1alpha1
+kind: Release
+metadata:
+  name: default
+spec:
+  entrypoint: bookinfo
+  layout: bookinfo-1-0-0

@@ -22,8 +22,6 @@ spec:
           type: object
         spec:
           properties:
-            defaultLayout:
-              type: string
             servers:
               items:
                 properties:

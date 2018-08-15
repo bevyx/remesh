@@ -11,42 +11,49 @@ import (
 //MakeRouteForEntrypoint is
 func MakeRouteForEntrypoint(entrypointFlow models.EntrypointFlow) []istioapi.HTTPRoute {
 	istioRouteList := make([]istioapi.HTTPRoute, 0)
-	prioritizeTargetingFlows := make([]models.TargetingFlow, len(entrypointFlow.TargetingFlows))
-	copy(prioritizeTargetingFlows, entrypointFlow.TargetingFlows)
-	sort.Sort(models.ByPriority(prioritizeTargetingFlows))
-	for _, targetingFlow := range prioritizeTargetingFlows {
-		combainedIstioRouteList := makeCombainedIstioRouteList(targetingFlow.Layout, targetingFlow.Targeting)
-		istioRouteList = append(istioRouteList, combainedIstioRouteList...)
+	prioritizedReleaseFlows := make([]models.ReleaseFlow, len(entrypointFlow.ReleaseFlows))
+	copy(prioritizedReleaseFlows, entrypointFlow.ReleaseFlows)
+	sort.Sort(models.ByPriority(prioritizedReleaseFlows))
+	for _, releaseFlow := range prioritizedReleaseFlows {
+		if len(releaseFlow.Segments) == 0 {
+			defaultIstioRouteList := makeLayoutIstioRouteList(releaseFlow.Layout)
+			istioRouteList = append(istioRouteList, defaultIstioRouteList...)
+		} else {
+			combainedIstioRouteList := makeCombainedIstioRouteList(releaseFlow.Layout, releaseFlow.Segments)
+			istioRouteList = append(istioRouteList, combainedIstioRouteList...)
+		}
 	}
-	defaultIstioRouteList := makeDefaultIstioRouteList(entrypointFlow.DefaultLayout)
-	istioRouteList = append(istioRouteList, defaultIstioRouteList...)
+	//defaultIstioRouteList := makeDefaultIstioRouteList(entrypointFlow.DefaultLayout)
+	//istioRouteList = append(istioRouteList, defaultIstioRouteList...)
 
 	return istioRouteList
 }
 
-func makeCombainedIstioRouteList(layout api.Layout, targeting api.Targeting) []istioapi.HTTPRoute {
+func makeCombainedIstioRouteList(layout api.Layout, segments []api.Segment) []istioapi.HTTPRoute {
+	istioRouteList := make([]istioapi.HTTPRoute, 0)
+	for _, segment := range segments {
+		for _, veRoute := range layout.Spec.Http {
+			istioMatchList := make([]istioapi.HTTPMatchRequest, 0)
+			for _, veMatch := range veRoute.Match {
+				for _, targetingMatch := range segment.Spec.HttpMatch {
+					istioMatchList = append(istioMatchList, combaineMatchesToIstioMatch(veMatch, targetingMatch))
+				}
+			}
+			istioRouteList = append(istioRouteList, makeIstioRoute(istioMatchList, veRoute.Destination.Host, veRoute.Destination.Port, layout.Name))
+		}
+	}
+
+	return istioRouteList
+}
+
+func makeLayoutIstioRouteList(layout api.Layout) []istioapi.HTTPRoute {
 	istioRouteList := make([]istioapi.HTTPRoute, 0)
 	for _, veRoute := range layout.Spec.Http {
 		istioMatchList := make([]istioapi.HTTPMatchRequest, 0)
 		for _, veMatch := range veRoute.Match {
-			for _, targetingMatch := range targeting.Spec.Segment.HttpMatch {
-				istioMatchList = append(istioMatchList, combaineMatchesToIstioMatch(veMatch, targetingMatch))
-			}
-		}
-		istioRouteList = append(istioRouteList, makeIstioRoute(istioMatchList, veRoute.Destination.Host, veRoute.Destination.Port, targeting.Spec.Layout))
-
-	}
-	return istioRouteList
-}
-
-func makeDefaultIstioRouteList(defaultLayout api.Layout) []istioapi.HTTPRoute {
-	istioRouteList := make([]istioapi.HTTPRoute, 0)
-	for _, veRoute := range defaultLayout.Spec.Http {
-		istioMatchList := make([]istioapi.HTTPMatchRequest, 0)
-		for _, veMatch := range veRoute.Match {
 			istioMatchList = append(istioMatchList, combaineMatchesToIstioMatch(veMatch, api.HTTPMatchRequest{}))
 		}
-		istioRouteList = append(istioRouteList, makeIstioRoute(istioMatchList, veRoute.Destination.Host, veRoute.Destination.Port, defaultLayout.Name))
+		istioRouteList = append(istioRouteList, makeIstioRoute(istioMatchList, veRoute.Destination.Host, veRoute.Destination.Port, layout.Name))
 	}
 	return istioRouteList
 }

@@ -61,7 +61,12 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
-	err = c.Watch(&source.Kind{Type: &remeshv1alpha1.Targeting{}}, &handler.EnqueueRequestForObject{})
+	err = c.Watch(&source.Kind{Type: &remeshv1alpha1.Release{}}, &handler.EnqueueRequestForObject{})
+	if err != nil {
+		return err
+	}
+
+	err = c.Watch(&source.Kind{Type: &remeshv1alpha1.Segment{}}, &handler.EnqueueRequestForObject{})
 	if err != nil {
 		return err
 	}
@@ -97,12 +102,12 @@ type ReconcileRemesh struct {
 // +kubebuilder:rbac:groups=networking.istio.io,resources=destinationrules,verbs=get;list;watch;create;update;patch;delete
 func (r *ReconcileRemesh) Reconcile(request reconcile.Request) (reconcile.Result, error) {
 
-	layoutList, targetingList, entrypointList, err := r.fetchRemeshResources(request)
+	layoutList, releaseList, segmentList, entrypointList, err := r.fetchRemeshResources(request)
 	if err != nil {
 		return reconcile.Result{}, err
 	}
 
-	entrypointFlows := remesh.Combine(layoutList, targetingList, entrypointList)
+	entrypointFlows := remesh.Combine(layoutList, releaseList, segmentList, entrypointList)
 	applier := istio.NewIstioApplier(request.Namespace, r)
 	istioapi.AddToScheme(r.scheme) //todo: this should be in the istio applier, but passing reconciler to istio would cause circular reference
 	applier.Apply(entrypointFlows)
@@ -110,13 +115,14 @@ func (r *ReconcileRemesh) Reconcile(request reconcile.Request) (reconcile.Result
 	return reconcile.Result{}, nil
 }
 
-func (r *ReconcileRemesh) fetchRemeshResources(request reconcile.Request) (layoutList remeshv1alpha1.LayoutList, targetingList remeshv1alpha1.TargetingList, entrypointList remeshv1alpha1.EntrypointList, err error) {
+func (r *ReconcileRemesh) fetchRemeshResources(request reconcile.Request) (layoutList remeshv1alpha1.LayoutList, releaseList remeshv1alpha1.ReleaseList, segmentList remeshv1alpha1.SegmentList, entrypointList remeshv1alpha1.EntrypointList, err error) {
 	options := client.ListOptions{
 		Namespace: request.Namespace,
 	}
 	entrypointList = remeshv1alpha1.EntrypointList{}
 	layoutList = remeshv1alpha1.LayoutList{}
-	targetingList = remeshv1alpha1.TargetingList{}
+	releaseList = remeshv1alpha1.ReleaseList{}
+	segmentList = remeshv1alpha1.SegmentList{}
 
 	err = r.List(context.TODO(), &options, &entrypointList)
 	if err != nil {
@@ -128,11 +134,15 @@ func (r *ReconcileRemesh) fetchRemeshResources(request reconcile.Request) (layou
 		log.Printf("missing Layouts %v", err)
 		return
 	}
-	err = r.List(context.TODO(), &options, &targetingList)
+	err = r.List(context.TODO(), &options, &releaseList)
 	if err != nil {
-		log.Printf("missing Targetings %v", err)
-		//it's ok to not have targetings
+		log.Printf("missing Releases %v", err)
 	}
-	log.Printf("fetched remesh resources: %d entrypoints, %d layouts, %d targetings", len(entrypointList.Items), len(layoutList.Items), len(targetingList.Items))
+	err = r.List(context.TODO(), &options, &segmentList)
+	if err != nil {
+		log.Printf("missing Segments %v", err)
+		//it's ok to not have segments
+	}
+	log.Printf("fetched remesh resources: %d entrypoints, %d layouts, %d releases, %d segments", len(entrypointList.Items), len(layoutList.Items), len(releaseList.Items), len(segmentList.Items))
 	return
 }

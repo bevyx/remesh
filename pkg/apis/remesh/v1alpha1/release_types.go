@@ -20,25 +20,25 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-type Segment struct {
-	HttpMatch []HTTPMatchRequest `json:"httpMatch,omitempty"`
+type Targeting struct {
+	Segments []string `json:"segments,omitempty"`
+	Priority int32    `json:"priority,omitempty"`
 }
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-// TargetingSpec defines the desired state of Targeting
-type TargetingSpec struct {
+// ReleaseSpec defines the desired state of Release
+type ReleaseSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
-	Entrypoint string  `json:"entrypoint,omitempty"`
-	Priority   int32   `json:"priority,omitempty"`
-	Segment    Segment `json:"segment,omitempty"`
-	Layout     string  `json:"layout,omitempty"`
+	Entrypoint string     `json:"entrypoint,omitempty"`
+	Targeting  *Targeting `json:"segment,omitempty"`
+	Layout     string     `json:"layout,omitempty"`
 }
 
-// TargetingStatus defines the observed state of Targeting
-type TargetingStatus struct {
+// ReleaseStatus defines the observed state of Release
+type ReleaseStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 }
@@ -46,25 +46,25 @@ type TargetingStatus struct {
 // +genclient
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// Targeting is the Schema for the targetings API
+// Release is the Schema for the Releases API
 // +k8s:openapi-gen=true
-type Targeting struct {
+type Release struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   TargetingSpec   `json:"spec,omitempty"`
-	Status TargetingStatus `json:"status,omitempty"`
+	Spec   ReleaseSpec   `json:"spec,omitempty"`
+	Status ReleaseStatus `json:"status,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// TargetingList contains a list of Targeting
-type TargetingList struct {
+// ReleaseList contains a list of Release
+type ReleaseList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []Targeting `json:"items"`
+	Items           []Release `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&Targeting{}, &TargetingList{})
+	SchemeBuilder.Register(&Release{}, &ReleaseList{})
 }
