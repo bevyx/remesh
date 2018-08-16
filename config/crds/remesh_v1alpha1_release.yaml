@@ -24,7 +24,7 @@ spec:
           properties:
             layout:
               type: string
-            segment:
+            targeting:
               properties:
                 priority:
                   format: int32
@@ -34,7 +34,7 @@ spec:
                     type: string
                   type: array
               type: object
-            virtualappconfig:
+            virtualAppConfig:
               type: string
           type: object
         status:

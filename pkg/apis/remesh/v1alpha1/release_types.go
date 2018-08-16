@@ -32,8 +32,8 @@ type Targeting struct {
 type ReleaseSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
-	VirtualAppConfig string     `json:"virtualappconfig,omitempty"`
-	Targeting        *Targeting `json:"segment,omitempty"`
+	VirtualAppConfig string     `json:"virtualAppConfig,omitempty"`
+	Targeting        *Targeting `json:"targeting,omitempty"`
 	Layout           string     `json:"layout,omitempty"`
 }
 
@@ -41,6 +41,8 @@ type ReleaseSpec struct {
 type ReleaseStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+	Phase  string
+	Reason string
 }
 
 // +genclient

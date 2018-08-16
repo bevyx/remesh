@@ -20,7 +20,7 @@ import (
 	"context"
 
 	remeshv1alpha1 "github.com/bevyx/remesh/pkg/apis/remesh/v1alpha1"
-	appsv1 "k8s.io/api/apps/v1"
+	"github.com/bevyx/remesh/pkg/controller/utils"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -62,12 +62,11 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
-	// TODO(user): Modify this to be the types you create
-	// Uncomment watch a Deployment created by Layout - change this for objects you create
-	err = c.Watch(&source.Kind{Type: &appsv1.Deployment{}}, &handler.EnqueueRequestForOwner{
-		IsController: true,
-		OwnerType:    &remeshv1alpha1.Layout{},
+	// Watch for changes to VirtualApp
+	vappMapper := utils.VirtualAppHandlerMapper(func(rf remeshv1alpha1.ReleaseFlow) []string {
+		return []string{rf.LayoutName}
 	})
+	err = c.Watch(&source.Kind{Type: &remeshv1alpha1.VirtualApp{}}, &handler.EnqueueRequestsFromMapFunc{ToRequests: vappMapper})
 	if err != nil {
 		return err
 	}
@@ -92,15 +91,30 @@ func (r *ReconcileLayout) Reconcile(request reconcile.Request) (reconcile.Result
 	// Fetch the Layout instance
 	instance := &remeshv1alpha1.Layout{}
 	err := r.Get(context.TODO(), request.NamespacedName, instance)
+	deleted := false
 	if err != nil {
 		if errors.IsNotFound(err) {
-			// Object not found, return.  Created objects are automatically garbage collected.
-			// For additional cleanup logic use finalizers.
-			return reconcile.Result{}, nil
+			deleted = true
+		} else {
+			// Error reading the object - requeue the request.
+			return reconcile.Result{}, err
 		}
-		// Error reading the object - requeue the request.
-		return reconcile.Result{}, err
 	}
 
-	return reconcile.Result{}, nil
+	return utils.ReconcileAllVirtualAppsByFn(r.Client, request.Namespace, func(virtualApp *remeshv1alpha1.VirtualApp) {
+		reconcileLayout(request.Name, instance, virtualApp, deleted)
+	})
+}
+
+func reconcileLayout(layoutName string, layout *remeshv1alpha1.Layout, virtualApp *remeshv1alpha1.VirtualApp, deleted bool) {
+	releaseFlows := virtualApp.Spec.ReleaseFlows
+	for i := range releaseFlows {
+		if releaseFlows[i].LayoutName == layoutName {
+			if deleted {
+				releaseFlows[i].Layout = nil
+			} else {
+				releaseFlows[i].Layout = layout.Spec.DeepCopy()
+			}
+		}
+	}
 }

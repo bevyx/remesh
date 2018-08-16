@@ -6,119 +6,106 @@ import (
 
 	api "github.com/bevyx/remesh/pkg/apis/remesh/v1alpha1"
 	"github.com/bevyx/remesh/pkg/istio/models"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func TestTransformLayout(t *testing.T) {
-	layouts := []api.Layout{
-		api.Layout{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      "bookinfo",
-				Namespace: "default",
-			},
-			Spec: api.LayoutSpec{
-				Http: []api.HTTPRoute{api.HTTPRoute{
-					Match: []api.HTTPMatchRequest{
-						api.HTTPMatchRequest{
-							Uri: &api.StringMatch{Exact: "/productpage"},
-						},
-						api.HTTPMatchRequest{
-							Uri: &api.StringMatch{Exact: "/login"},
-						},
-						api.HTTPMatchRequest{
-							Uri: &api.StringMatch{Exact: "/logout"},
-						},
-						api.HTTPMatchRequest{
-							Uri: &api.StringMatch{Prefix: "/api/v1/products"},
-						},
+	layoutMap := map[string]api.LayoutSpec{
+		"bookinfo": api.LayoutSpec{
+			Http: []api.HTTPRoute{api.HTTPRoute{
+				Match: []api.HTTPMatchRequest{
+					api.HTTPMatchRequest{
+						Uri: &api.StringMatch{Exact: "/productpage"},
 					},
-					Destination: api.Destination{
-						Host: "productpage",
-						Port: &api.PortSelector{
-							Number: 9080,
-						},
+					api.HTTPMatchRequest{
+						Uri: &api.StringMatch{Exact: "/login"},
+					},
+					api.HTTPMatchRequest{
+						Uri: &api.StringMatch{Exact: "/logout"},
+					},
+					api.HTTPMatchRequest{
+						Uri: &api.StringMatch{Prefix: "/api/v1/products"},
+					},
+				},
+				Destination: api.Destination{
+					Host: "productpage",
+					Port: &api.PortSelector{
+						Number: 9080,
+					},
+				},
+			}},
+			Services: []api.Service{
+				api.Service{
+					Host: "productpage",
+					Labels: map[string]string{
+						"version": "v1",
+						"stam":    "v1",
+					},
+				},
+				api.Service{
+					Host: "reviews",
+					Labels: map[string]string{
+						"version": "v1",
+					},
+				},
+				api.Service{
+					Host: "details",
+					Labels: map[string]string{
+						"version": "v1",
 					},
 				}},
-				Services: []api.Service{
-					api.Service{
-						Host: "productpage",
-						Labels: map[string]string{
-							"version": "v1",
-							"stam":    "v1",
-						},
-					},
-					api.Service{
-						Host: "reviews",
-						Labels: map[string]string{
-							"version": "v1",
-						},
-					},
-					api.Service{
-						Host: "details",
-						Labels: map[string]string{
-							"version": "v1",
-						},
-					}},
-			},
 		},
-		api.Layout{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      "bookinfo-ratings",
-				Namespace: "default",
-			},
-			Spec: api.LayoutSpec{
-				Http: []api.HTTPRoute{api.HTTPRoute{
-					Match: []api.HTTPMatchRequest{
-						api.HTTPMatchRequest{
-							Uri: &api.StringMatch{Exact: "/productpage"},
-						},
-						api.HTTPMatchRequest{
-							Uri: &api.StringMatch{Exact: "/login"},
-						},
-						api.HTTPMatchRequest{
-							Uri: &api.StringMatch{Exact: "/logout"},
-						},
-						api.HTTPMatchRequest{
-							Uri: &api.StringMatch{Prefix: "/api/v1/products"},
-						},
+		"bookinfo-ratings": api.LayoutSpec{
+			Http: []api.HTTPRoute{api.HTTPRoute{
+				Match: []api.HTTPMatchRequest{
+					api.HTTPMatchRequest{
+						Uri: &api.StringMatch{Exact: "/productpage"},
 					},
-					Destination: api.Destination{
-						Host: "productpage",
-						Port: &api.PortSelector{
-							Number: 9080,
-						},
+					api.HTTPMatchRequest{
+						Uri: &api.StringMatch{Exact: "/login"},
+					},
+					api.HTTPMatchRequest{
+						Uri: &api.StringMatch{Exact: "/logout"},
+					},
+					api.HTTPMatchRequest{
+						Uri: &api.StringMatch{Prefix: "/api/v1/products"},
+					},
+				},
+				Destination: api.Destination{
+					Host: "productpage",
+					Port: &api.PortSelector{
+						Number: 9080,
+					},
+				},
+			}},
+			Services: []api.Service{
+				api.Service{
+					Host: "productpage",
+					Labels: map[string]string{
+						"stam":    "v1",
+						"version": "v1",
+					},
+				},
+				api.Service{
+					Host: "reviews",
+					Labels: map[string]string{
+						"version": "v2",
+					},
+				},
+				api.Service{
+					Host: "ratings",
+					Labels: map[string]string{
+						"version": "v1",
+					},
+				},
+				api.Service{
+					Host: "details",
+					Labels: map[string]string{
+						"version": "v1",
 					},
 				}},
-				Services: []api.Service{
-					api.Service{
-						Host: "productpage",
-						Labels: map[string]string{
-							"stam":    "v1",
-							"version": "v1",
-						},
-					},
-					api.Service{
-						Host: "reviews",
-						Labels: map[string]string{
-							"version": "v2",
-						},
-					},
-					api.Service{
-						Host: "ratings",
-						Labels: map[string]string{
-							"version": "v1",
-						},
-					},
-					api.Service{
-						Host: "details",
-						Labels: map[string]string{
-							"version": "v1",
-						},
-					}},
-			},
 		},
 	}
-	transformLayout := TransformLayout(layouts)
+	transformLayout := TransformLayout(layoutMap)
 	//json, _ := json.MarshalIndent(transformLayout, "", "  ")
 	//t.Logf("%s", string(json))
 	//t.Logf("%#v\n", &transformLayout)

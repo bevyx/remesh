@@ -20,10 +20,7 @@ import (
 	"context"
 	"log"
 
-	istioapi "github.com/bevyx/istio-api-go/pkg/apis/networking/v1alpha3"
 	remeshv1alpha1 "github.com/bevyx/remesh/pkg/apis/remesh/v1alpha1"
-	"github.com/bevyx/remesh/pkg/istio"
-	"github.com/bevyx/remesh/pkg/remesh"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
@@ -102,15 +99,15 @@ type ReconcileRemesh struct {
 // +kubebuilder:rbac:groups=networking.istio.io,resources=destinationrules,verbs=get;list;watch;create;update;patch;delete
 func (r *ReconcileRemesh) Reconcile(request reconcile.Request) (reconcile.Result, error) {
 
-	layoutList, releaseList, segmentList, virtualappconfigList, err := r.fetchRemeshResources(request)
-	if err != nil {
-		return reconcile.Result{}, err
-	}
+	// layoutList, releaseList, segmentList, virtualappconfigList, err := r.fetchRemeshResources(request)
+	// if err != nil {
+	// 	return reconcile.Result{}, err
+	// }
 
-	virtualappconfigFlows := remesh.Combine(layoutList, releaseList, segmentList, virtualappconfigList)
-	applier := istio.NewIstioApplier(request.Namespace, r)
-	istioapi.AddToScheme(r.scheme) //todo: this should be in the istio applier, but passing reconciler to istio would cause circular reference
-	applier.Apply(virtualappconfigFlows)
+	// virtualappconfigFlows := remesh.Combine(layoutList, releaseList, segmentList, virtualappconfigList)
+	// applier := istio.NewIstioApplier(request.Namespace, r)
+	// istioapi.AddToScheme(r.scheme) //todo: this should be in the istio applier, but passing reconciler to istio would cause circular reference
+	// applier.Apply(virtualappconfigFlows)
 
 	return reconcile.Result{}, nil
 }

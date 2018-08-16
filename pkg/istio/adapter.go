@@ -12,7 +12,7 @@ import (
 
 	"k8s.io/apimachinery/pkg/runtime"
 
-	"github.com/bevyx/remesh/pkg/models"
+	remeshv1alpha1 "github.com/bevyx/remesh/pkg/apis/remesh/v1alpha1"
 )
 
 //IstioApplier is
@@ -30,9 +30,9 @@ func NewIstioApplier(namespace string, reconciler client.Client) IstioApplier {
 }
 
 //Apply is
-func (a *IstioApplier) Apply(virtualappconfigFlows []models.VirtualAppConfigFlow) {
-	log.Printf("applying %d virtualappconfigFlows", len(virtualappconfigFlows))
-	desiredGateways, desiredVirtualServices, desiredDestinationRules := a.getDesiredResources(virtualappconfigFlows, a.namespace)
+func (a *IstioApplier) Apply(virtualApps []remeshv1alpha1.VirtualApp) {
+	log.Printf("applying %d virtualApps", len(virtualApps))
+	desiredGateways, desiredVirtualServices, desiredDestinationRules := a.getDesiredResources(virtualApps)
 	log.Printf("desired: gateways %d, virtualservices: %d, destinationrules %d", len(desiredGateways), len(desiredVirtualServices), len(desiredDestinationRules))
 	actualGateways, actualVirtualServices, actualDestinationRules := a.getActualResources(a.namespace, a.reconciler)
 	log.Printf("actual: gateways %d, virtualservices: %d, destinationrules %d", len(actualGateways), len(actualVirtualServices), len(actualDestinationRules))
@@ -363,22 +363,24 @@ func findObject(obj runtime.Object, list []runtime.Object) (runtime.Object, bool
 	return nil, false
 }
 
-func (a *IstioApplier) getDesiredResources(virtualappconfigFlows []models.VirtualAppConfigFlow, namespace string) (gateways []istioapi.Gateway, virtualServices []istioapi.VirtualService, destinationRules []istioapi.DestinationRule) {
+func (a *IstioApplier) getDesiredResources(virtualApps []remeshv1alpha1.VirtualApp) (gateways []istioapi.Gateway, virtualServices []istioapi.VirtualService, destinationRules []istioapi.DestinationRule) {
 	gateways = make([]istioapi.Gateway, 0)
 	virtualServices = make([]istioapi.VirtualService, 0)
 	destinationRules = make([]istioapi.DestinationRule, 0)
 
-	for _, virtualappconfigFlow := range virtualappconfigFlows {
-		gateway, gatewayName := resources.MakeIstioGateway(virtualappconfigFlow.VirtualAppConfig, namespace)
+	for _, virtualApp := range virtualApps {
+		gateway, gatewayName := resources.MakeIstioGateway(virtualApp, a.namespace)
 		gateways = append(gateways, gateway)
 
-		httpRoutes := MakeRouteForVirtualAppConfig(virtualappconfigFlow)
-		gatewayVirtualService, virtualServiceName := resources.MakeIstioVirtualServiceForGateway(httpRoutes, namespace, gatewayName)
+		httpRoutes := MakeRouteForVirtualAppConfig(virtualApp)
+		gatewayVirtualService, virtualServiceName := resources.MakeIstioVirtualServiceForGateway(httpRoutes, a.namespace, gatewayName)
 		virtualServices = append(virtualServices, gatewayVirtualService)
 
-		transformedServices := TransformLayout(virtualappconfigFlow.Layouts)
-		transformedVirtualServices := resources.MakeIstioVirtualServices(transformedServices, namespace, virtualServiceName)
-		transformedDestinationRules := resources.MakeIstioDestinationRules(transformedServices, namespace)
+		layoutMap := getLayoutMapFromReleaseFlows(virtualApp.Spec.ReleaseFlows)
+
+		transformedServices := TransformLayout(layoutMap)
+		transformedVirtualServices := resources.MakeIstioVirtualServices(transformedServices, a.namespace, virtualServiceName)
+		transformedDestinationRules := resources.MakeIstioDestinationRules(transformedServices, a.namespace)
 		virtualServices = append(virtualServices, transformedVirtualServices...)
 		destinationRules = append(destinationRules, transformedDestinationRules...)
 	}

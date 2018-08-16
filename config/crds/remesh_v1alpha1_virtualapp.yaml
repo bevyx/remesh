@@ -103,11 +103,13 @@ spec:
                           type: object
                         type: array
                     type: object
+                  layoutName:
+                    type: string
                   release:
                     properties:
                       layout:
                         type: string
-                      segment:
+                      targeting:
                         properties:
                           priority:
                             format: int32
@@ -117,64 +119,13 @@ spec:
                               type: string
                             type: array
                         type: object
-                      virtualappconfig:
+                      virtualAppConfig:
                         type: string
                     type: object
+                  releaseName:
+                    type: string
                   segments:
-                    items:
-                      properties:
-                        httpMatch:
-                          items:
-                            properties:
-                              authority:
-                                properties:
-                                  exact:
-                                    type: string
-                                  prefix:
-                                    type: string
-                                  regex:
-                                    type: string
-                                type: object
-                              gateways:
-                                items:
-                                  type: string
-                                type: array
-                              headers:
-                                type: object
-                              method:
-                                properties:
-                                  exact:
-                                    type: string
-                                  prefix:
-                                    type: string
-                                  regex:
-                                    type: string
-                                type: object
-                              port:
-                                format: int32
-                                type: integer
-                              scheme:
-                                properties:
-                                  exact:
-                                    type: string
-                                  prefix:
-                                    type: string
-                                  regex:
-                                    type: string
-                                type: object
-                              uri:
-                                properties:
-                                  exact:
-                                    type: string
-                                  prefix:
-                                    type: string
-                                  regex:
-                                    type: string
-                                type: object
-                            type: object
-                          type: array
-                      type: object
-                    type: array
+                    type: object
                 type: object
               type: array
             virtualAppConfig:

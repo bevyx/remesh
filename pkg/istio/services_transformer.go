@@ -6,23 +6,23 @@ import (
 )
 
 //TransformLayout is
-func TransformLayout(layouts []api.Layout) []models.TransformedService {
+func TransformLayout(layoutMap map[string]api.LayoutSpec) []models.TransformedService {
 	transformedServices := make([]models.TransformedService, 0)
-	for _, layout := range layouts {
-		for _, service := range layout.Spec.Services {
+	for layoutName, layout := range layoutMap {
+		for _, service := range layout.Services {
 			subsetHash := computeHash(service.Labels)
 			transformedService := findTransformedService(service.Host, &transformedServices)
 			if transformedService == nil {
 				transformedServices = append(transformedServices, models.TransformedService{
 					Host:              service.Host,
-					ServiceSubsetList: []models.ServiceSubset{makeServiceSubset(service.Labels, subsetHash, layout.Name)},
+					ServiceSubsetList: []models.ServiceSubset{makeServiceSubset(service.Labels, subsetHash, layoutName)},
 				})
 			} else {
 				serviceSubset := findServiceSubset(subsetHash, &transformedService.ServiceSubsetList)
 				if serviceSubset == nil {
-					transformedService.ServiceSubsetList = append(transformedService.ServiceSubsetList, makeServiceSubset(service.Labels, subsetHash, layout.Name))
+					transformedService.ServiceSubsetList = append(transformedService.ServiceSubsetList, makeServiceSubset(service.Labels, subsetHash, layoutName))
 				} else {
-					serviceSubset.Layouts = append(serviceSubset.Layouts, layout.Name)
+					serviceSubset.Layouts = append(serviceSubset.Layouts, layoutName)
 				}
 			}
 		}

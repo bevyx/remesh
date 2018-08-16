@@ -18,6 +18,7 @@ package virtualappconfig
 
 import (
 	"context"
+	"reflect"
 
 	remeshv1alpha1 "github.com/bevyx/remesh/pkg/apis/remesh/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
@@ -25,6 +26,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
@@ -102,5 +104,39 @@ func (r *ReconcileVirtualAppConfig) Reconcile(request reconcile.Request) (reconc
 		return reconcile.Result{}, err
 	}
 
+	virtualApp := &remeshv1alpha1.VirtualApp{}
+	err = r.Get(context.TODO(), request.NamespacedName, virtualApp)
+
+	// If not found, create it
+	if errors.IsNotFound(err) {
+		spec := *getVirtualAppSpec(request, instance.Spec)
+		virtualApp = &remeshv1alpha1.VirtualApp{Spec: spec}
+		virtualApp.Name = request.Name
+		virtualApp.Namespace = request.Namespace
+		if err := controllerutil.SetControllerReference(instance, virtualApp, r.scheme); err != nil {
+			return reconcile.Result{}, err
+		}
+		if err := r.Create(context.TODO(), virtualApp); err != nil {
+			return reconcile.Result{}, err
+		}
+		return reconcile.Result{}, nil
+	}
+
+	// If found, update it
+	if reflect.DeepEqual(virtualApp.Spec.VirtualAppConfig, instance.Spec) {
+		return reconcile.Result{}, nil
+	}
+	virtualApp.Spec.VirtualAppConfig = instance.Spec
+	if err := r.Update(context.TODO(), virtualApp); err != nil {
+		return reconcile.Result{}, err
+	}
+
 	return reconcile.Result{}, nil
+}
+
+func getVirtualAppSpec(request reconcile.Request, virtualAppConfigSpec remeshv1alpha1.VirtualAppConfigSpec) *remeshv1alpha1.VirtualAppSpec {
+	return &remeshv1alpha1.VirtualAppSpec{
+		VirtualAppConfig: virtualAppConfigSpec,
+		ReleaseFlows:     []remeshv1alpha1.ReleaseFlow{},
+	}
 }

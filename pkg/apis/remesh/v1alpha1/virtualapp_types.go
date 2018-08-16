@@ -21,9 +21,27 @@ import (
 )
 
 type ReleaseFlow struct {
-	Release  ReleaseSpec   `json:"release,omitempty"`
-	Segments []SegmentSpec `json:"segments,omitempty"`
-	Layout   *LayoutSpec   `json:"layout,omitempty"`
+	ReleaseName string                   `json:"releaseName,omitempty"`
+	Release     ReleaseSpec              `json:"release,omitempty"`
+	Targeting   *map[string]*SegmentSpec `json:"segments,omitempty"`
+	LayoutName  string                   `json:"layoutName,omitempty"`
+	Layout      *LayoutSpec              `json:"layout,omitempty"`
+}
+
+// ByPriority implements sort.Interface for []ReleaseFlow based on
+// the Release Priority field.
+type ByPriority []ReleaseFlow
+
+func (a ByPriority) Len() int      { return len(a) }
+func (a ByPriority) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
+func (a ByPriority) Less(i, j int) bool {
+	if a[i].Release.Targeting == nil {
+		return false
+	}
+	if a[j].Release.Targeting == nil {
+		return true
+	}
+	return a[i].Release.Targeting.Priority > a[j].Release.Targeting.Priority
 }
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!

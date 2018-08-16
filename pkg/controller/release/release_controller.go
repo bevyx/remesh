@@ -18,9 +18,14 @@ package release
 
 import (
 	"context"
+	goerrors "errors"
+	"reflect"
+	"sort"
+
+	"k8s.io/apimachinery/pkg/types"
 
 	remeshv1alpha1 "github.com/bevyx/remesh/pkg/apis/remesh/v1alpha1"
-	appsv1 "k8s.io/api/apps/v1"
+	"github.com/bevyx/remesh/pkg/controller/utils"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -62,12 +67,11 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
-	// TODO(user): Modify this to be the types you create
-	// Uncomment watch a Deployment created by Release - change this for objects you create
-	err = c.Watch(&source.Kind{Type: &appsv1.Deployment{}}, &handler.EnqueueRequestForOwner{
-		IsController: true,
-		OwnerType:    &remeshv1alpha1.Release{},
+	// Watch for changes to VirtualApp
+	vappMapper := utils.VirtualAppHandlerMapper(func(rf remeshv1alpha1.ReleaseFlow) []string {
+		return []string{rf.ReleaseName}
 	})
+	err = c.Watch(&source.Kind{Type: &remeshv1alpha1.VirtualApp{}}, &handler.EnqueueRequestsFromMapFunc{ToRequests: vappMapper})
 	if err != nil {
 		return err
 	}
@@ -92,15 +96,116 @@ func (r *ReconcileRelease) Reconcile(request reconcile.Request) (reconcile.Resul
 	// Fetch the Release instance
 	instance := &remeshv1alpha1.Release{}
 	err := r.Get(context.TODO(), request.NamespacedName, instance)
+	deleted := false
 	if err != nil {
 		if errors.IsNotFound(err) {
-			// Object not found, return.  Created objects are automatically garbage collected.
-			// For additional cleanup logic use finalizers.
-			return reconcile.Result{}, nil
+			deleted = true
+		} else {
+			// Error reading the object - requeue the request.
+			return reconcile.Result{}, err
 		}
-		// Error reading the object - requeue the request.
-		return reconcile.Result{}, err
 	}
 
+	namespacedName := types.NamespacedName{
+		Namespace: request.Namespace,
+		Name:      instance.Spec.VirtualAppConfig,
+	}
+	virtualApp := &remeshv1alpha1.VirtualApp{}
+	err = r.Get(context.TODO(), namespacedName, virtualApp)
+
+	if errors.IsNotFound(err) {
+		tmp := instance.DeepCopy()
+		tmp.Status.Phase = "Pending"
+		tmp.Status.Reason = "missingVApp"
+		r.Update(context.TODO(), tmp)
+		return reconcile.Result{}, nil
+	} else if err != nil {
+		return reconcile.Result{}, err
+	} else {
+		//Ensure there is a single default release
+		if instance.Spec.Targeting == nil || len(instance.Spec.Targeting.Segments) == 0 {
+			releases := remeshv1alpha1.ReleaseList{}
+			err := r.List(context.TODO(), &client.ListOptions{}, &releases)
+			if err != nil {
+				return reconcile.Result{}, err
+			}
+			//TODO: figure out how to move this to serverside by query
+			for _, release := range releases.Items {
+				if release.Name != instance.Name && (release.Spec.Targeting == nil || len(release.Spec.Targeting.Segments) == 0) {
+					r.Delete(context.TODO(), instance) //ignore errors here. if couldnt delete, it will be tried again next time
+					return reconcile.Result{}, goerrors.New("Default release already exists")
+
+				}
+			}
+		}
+		virtualAppCopy := virtualApp.DeepCopy()
+		reconcileRelease(request.Name, instance, virtualApp, deleted)
+
+		if reflect.DeepEqual(virtualApp.Spec, virtualAppCopy.Spec) {
+			return reconcile.Result{}, nil
+		}
+		if err := r.Update(context.TODO(), virtualApp); err != nil {
+			return reconcile.Result{}, err
+		}
+	}
+	//shouldn't get here
 	return reconcile.Result{}, nil
+}
+
+func reconcileRelease(releaseName string, release *remeshv1alpha1.Release, virtualApp *remeshv1alpha1.VirtualApp, deleted bool) {
+	releaseFlows := virtualApp.Spec.ReleaseFlows
+	rfKey := -1
+	for i := range releaseFlows {
+		if releaseFlows[i].ReleaseName == releaseName {
+			rfKey = i
+		}
+	}
+
+	if rfKey == -1 {
+		var targeting *map[string]*remeshv1alpha1.SegmentSpec
+		if release.Spec.Targeting != nil {
+			targeting = &map[string]*remeshv1alpha1.SegmentSpec{}
+			for _, seg := range release.Spec.Targeting.Segments {
+				(*targeting)[seg] = nil
+			}
+		}
+
+		virtualApp.Spec.ReleaseFlows = append(virtualApp.Spec.ReleaseFlows, remeshv1alpha1.ReleaseFlow{
+			ReleaseName: releaseName,
+			Release:     *release.Spec.DeepCopy(),
+			Targeting:   targeting,
+			LayoutName:  release.Spec.Layout,
+			Layout:      nil,
+		})
+	} else {
+		if deleted {
+			virtualApp.Spec.ReleaseFlows = append(virtualApp.Spec.ReleaseFlows[:rfKey], virtualApp.Spec.ReleaseFlows[rfKey+1:]...)
+		} else {
+			releaseFlow := releaseFlows[rfKey]
+			releaseFlow.Release = *release.Spec.DeepCopy()
+			if release.Spec.Layout != releaseFlow.LayoutName {
+				releaseFlow.LayoutName = release.Spec.Layout
+				releaseFlow.Layout = nil
+			}
+			if release.Spec.Targeting == nil {
+				releaseFlow.Targeting = nil
+			} else {
+				newTargeting := &map[string]*remeshv1alpha1.SegmentSpec{}
+				for _, seg := range release.Spec.Targeting.Segments {
+					if releaseFlow.Targeting != nil {
+						if val, ok := (*releaseFlow.Targeting)[seg]; ok {
+							(*newTargeting)[seg] = val
+						} else {
+							(*newTargeting)[seg] = nil
+						}
+					} else {
+						(*newTargeting)[seg] = nil
+					}
+				}
+				releaseFlow.Targeting = newTargeting
+			}
+
+		}
+	}
+	sort.Sort(remeshv1alpha1.ByPriority(virtualApp.Spec.ReleaseFlows))
 }
