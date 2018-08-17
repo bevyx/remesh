@@ -5,36 +5,40 @@ import (
 	"log"
 
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/config"
 
 	istioapi "github.com/bevyx/istio-api-go/pkg/apis/networking/v1alpha3"
 	"github.com/bevyx/remesh/pkg/istio/resources"
+	"github.com/bevyx/remesh/pkg/remesh"
 	"k8s.io/apimachinery/pkg/api/meta"
 
-	"k8s.io/apimachinery/pkg/runtime"
-
 	remeshv1alpha1 "github.com/bevyx/remesh/pkg/apis/remesh/v1alpha1"
+	"k8s.io/apimachinery/pkg/runtime"
 )
 
-//IstioApplier is
+//IstioApplier is an implementation of the remesh.Applier interface that can apply a virtualApp configuration to Istio service mesh
 type IstioApplier struct {
-	namespace  string
-	reconciler client.Client
+	istioClient client.Client
 }
 
-//NewIstioApplier is
-func NewIstioApplier(namespace string, reconciler client.Client) IstioApplier {
-	return IstioApplier{
-		namespace:  namespace,
-		reconciler: reconciler,
+//NewIstioApplier creates new IstioApplier
+func NewIstioApplier() remesh.Applier {
+	clientConfig := config.GetConfigOrDie()
+	istioScheme := runtime.NewScheme()
+	istioapi.AddToScheme(istioScheme)
+	istioClient, err := client.New(clientConfig, client.Options{Scheme: istioScheme})
+	if err != nil {
+		log.Printf("%v", err)
 	}
+	return &IstioApplier{istioClient: istioClient}
 }
 
-//Apply is
-func (a *IstioApplier) Apply(virtualApps []remeshv1alpha1.VirtualApp) {
+//Apply is implementing the remesh.Applier interface
+func (a *IstioApplier) Apply(virtualApps []remeshv1alpha1.VirtualApp, namespace string) {
 	log.Printf("applying %d virtualApps", len(virtualApps))
-	desiredGateways, desiredVirtualServices, desiredDestinationRules := a.getDesiredResources(virtualApps)
+	desiredGateways, desiredVirtualServices, desiredDestinationRules := a.getDesiredResources(virtualApps, namespace)
 	log.Printf("desired: gateways %d, virtualservices: %d, destinationrules %d", len(desiredGateways), len(desiredVirtualServices), len(desiredDestinationRules))
-	actualGateways, actualVirtualServices, actualDestinationRules := a.getActualResources(a.namespace, a.reconciler)
+	actualGateways, actualVirtualServices, actualDestinationRules := a.getActualResources(namespace)
 	log.Printf("actual: gateways %d, virtualservices: %d, destinationrules %d", len(actualGateways), len(actualVirtualServices), len(actualDestinationRules))
 
 	//existing && !desired -> delete
@@ -205,7 +209,7 @@ func (a *IstioApplier) deleteGateways(gateways []istioapi.Gateway) {
 	// }
 
 	for _, x := range gateways {
-		err := a.reconciler.Delete(context.TODO(), &x)
+		err := a.istioClient.Delete(context.TODO(), &x)
 		if err != nil {
 			log.Printf("error delete %s/%s :  %v", x.GetNamespace(), x.GetName(), err)
 		}
@@ -223,7 +227,7 @@ func (a *IstioApplier) createGateways(gateways []istioapi.Gateway) {
 	// }
 
 	for _, x := range gateways {
-		err := a.reconciler.Create(context.TODO(), &x)
+		err := a.istioClient.Create(context.TODO(), &x)
 		if err != nil {
 			log.Printf("error create %s/%s :  %v", x.GetNamespace(), x.GetName(), err)
 		}
@@ -246,7 +250,7 @@ func (a *IstioApplier) updateGateways(gateways []struct {
 	for _, x := range gateways {
 		tmp := x.actual.DeepCopy()
 		tmp.Spec = x.desired.Spec
-		err := a.reconciler.Update(context.TODO(), tmp)
+		err := a.istioClient.Update(context.TODO(), tmp)
 		if err != nil {
 			log.Printf("error update %s/%s :  %v", tmp.GetNamespace(), tmp.GetName(), err)
 		}
@@ -255,7 +259,7 @@ func (a *IstioApplier) updateGateways(gateways []struct {
 
 func (a *IstioApplier) deleteVirtualServices(virtualServices []istioapi.VirtualService) {
 	for _, x := range virtualServices {
-		err := a.reconciler.Delete(context.TODO(), &x)
+		err := a.istioClient.Delete(context.TODO(), &x)
 		if err != nil {
 			log.Printf("error delete %s/%s :  %v", x.GetNamespace(), x.GetName(), err)
 		}
@@ -264,7 +268,7 @@ func (a *IstioApplier) deleteVirtualServices(virtualServices []istioapi.VirtualS
 
 func (a *IstioApplier) createVirtualServices(virtualServices []istioapi.VirtualService) {
 	for _, x := range virtualServices {
-		err := a.reconciler.Create(context.TODO(), &x)
+		err := a.istioClient.Create(context.TODO(), &x)
 		if err != nil {
 			log.Printf("error create %s/%s :  %v", x.GetNamespace(), x.GetName(), err)
 		}
@@ -278,7 +282,7 @@ func (a *IstioApplier) updateVirtualServices(virtualServices []struct {
 	for _, x := range virtualServices {
 		tmp := x.actual.DeepCopy()
 		tmp.Spec = x.desired.Spec
-		err := a.reconciler.Update(context.TODO(), tmp)
+		err := a.istioClient.Update(context.TODO(), tmp)
 		if err != nil {
 			log.Printf("error update %s/%s :  %v", tmp.GetNamespace(), tmp.GetName(), err)
 		}
@@ -287,7 +291,7 @@ func (a *IstioApplier) updateVirtualServices(virtualServices []struct {
 
 func (a *IstioApplier) deleteDestinationRules(destinationRules []istioapi.DestinationRule) {
 	for _, x := range destinationRules {
-		err := a.reconciler.Delete(context.TODO(), &x)
+		err := a.istioClient.Delete(context.TODO(), &x)
 		if err != nil {
 			log.Printf("error delete %s/%s :  %v", x.GetNamespace(), x.GetName(), err)
 		}
@@ -296,7 +300,7 @@ func (a *IstioApplier) deleteDestinationRules(destinationRules []istioapi.Destin
 
 func (a *IstioApplier) createDestinationRules(destinationRules []istioapi.DestinationRule) {
 	for _, x := range destinationRules {
-		err := a.reconciler.Create(context.TODO(), &x)
+		err := a.istioClient.Create(context.TODO(), &x)
 		if err != nil {
 			log.Printf("error create %s/%s :  %v", x.GetNamespace(), x.GetName(), err)
 		}
@@ -310,7 +314,7 @@ func (a *IstioApplier) updateDestinationRules(destinationRules []struct {
 	for _, x := range destinationRules {
 		tmp := x.actual.DeepCopy()
 		tmp.Spec = x.desired.Spec
-		err := a.reconciler.Update(context.TODO(), tmp)
+		err := a.istioClient.Update(context.TODO(), tmp)
 		if err != nil {
 			log.Printf("error update %s/%s :  %v", tmp.GetNamespace(), tmp.GetName(), err)
 		}
@@ -363,31 +367,31 @@ func findObject(obj runtime.Object, list []runtime.Object) (runtime.Object, bool
 	return nil, false
 }
 
-func (a *IstioApplier) getDesiredResources(virtualApps []remeshv1alpha1.VirtualApp) (gateways []istioapi.Gateway, virtualServices []istioapi.VirtualService, destinationRules []istioapi.DestinationRule) {
+func (a *IstioApplier) getDesiredResources(virtualApps []remeshv1alpha1.VirtualApp, namespace string) (gateways []istioapi.Gateway, virtualServices []istioapi.VirtualService, destinationRules []istioapi.DestinationRule) {
 	gateways = make([]istioapi.Gateway, 0)
 	virtualServices = make([]istioapi.VirtualService, 0)
 	destinationRules = make([]istioapi.DestinationRule, 0)
 
 	for _, virtualApp := range virtualApps {
-		gateway, gatewayName := resources.MakeIstioGateway(virtualApp, a.namespace)
+		gateway, gatewayName := resources.MakeIstioGateway(virtualApp, namespace)
 		gateways = append(gateways, gateway)
 
 		httpRoutes := MakeRouteForVirtualAppConfig(virtualApp)
-		gatewayVirtualService, virtualServiceName := resources.MakeIstioVirtualServiceForGateway(httpRoutes, a.namespace, gatewayName)
+		gatewayVirtualService, virtualServiceName := resources.MakeIstioVirtualServiceForGateway(httpRoutes, namespace, gatewayName)
 		virtualServices = append(virtualServices, gatewayVirtualService)
 
 		layoutMap := getLayoutMapFromReleaseFlows(virtualApp.Spec.ReleaseFlows)
 
 		transformedServices := TransformLayout(layoutMap)
-		transformedVirtualServices := resources.MakeIstioVirtualServices(transformedServices, a.namespace, virtualServiceName)
-		transformedDestinationRules := resources.MakeIstioDestinationRules(transformedServices, a.namespace)
+		transformedVirtualServices := resources.MakeIstioVirtualServices(transformedServices, namespace, virtualServiceName)
+		transformedDestinationRules := resources.MakeIstioDestinationRules(transformedServices, namespace)
 		virtualServices = append(virtualServices, transformedVirtualServices...)
 		destinationRules = append(destinationRules, transformedDestinationRules...)
 	}
 	return
 }
 
-func (a *IstioApplier) getActualResources(namespace string, reconciler client.Client) ([]istioapi.Gateway, []istioapi.VirtualService, []istioapi.DestinationRule) {
+func (a *IstioApplier) getActualResources(namespace string) ([]istioapi.Gateway, []istioapi.VirtualService, []istioapi.DestinationRule) {
 	options := client.ListOptions{
 		Namespace: namespace,
 	}
@@ -395,15 +399,15 @@ func (a *IstioApplier) getActualResources(namespace string, reconciler client.Cl
 	virtualServiceList := istioapi.VirtualServiceList{}
 	destinationRuleList := istioapi.DestinationRuleList{}
 
-	err := reconciler.List(context.TODO(), &options, &gatewayList)
+	err := a.istioClient.List(context.TODO(), &options, &gatewayList)
 	if err != nil {
 		log.Printf("%v", err)
 	}
-	err = reconciler.List(context.TODO(), &options, &virtualServiceList)
+	err = a.istioClient.List(context.TODO(), &options, &virtualServiceList)
 	if err != nil {
 		log.Printf("%v", err)
 	}
-	err = reconciler.List(context.TODO(), &options, &destinationRuleList)
+	err = a.istioClient.List(context.TODO(), &options, &destinationRuleList)
 	if err != nil {
 		log.Printf("%v", err)
 	}

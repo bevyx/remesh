@@ -20,9 +20,9 @@ import (
 	"context"
 	"log"
 
-	istioapi "github.com/bevyx/istio-api-go/pkg/apis/networking/v1alpha3"
 	remeshv1alpha1 "github.com/bevyx/remesh/pkg/apis/remesh/v1alpha1"
 	"github.com/bevyx/remesh/pkg/istio"
+	"github.com/bevyx/remesh/pkg/remesh"
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -47,7 +47,7 @@ func Add(mgr manager.Manager) error {
 
 // newReconciler returns a new reconcile.Reconciler
 func newReconciler(mgr manager.Manager) reconcile.Reconciler {
-	return &ReconcileVirtualApp{Client: mgr.GetClient(), scheme: mgr.GetScheme()}
+	return &ReconcileVirtualApp{Client: mgr.GetClient(), scheme: mgr.GetScheme(), applier: istio.NewIstioApplier()}
 }
 
 // add adds a new Controller to mgr with r as the reconcile.Reconciler
@@ -82,7 +82,8 @@ var _ reconcile.Reconciler = &ReconcileVirtualApp{}
 // ReconcileVirtualApp reconciles a VirtualApp object
 type ReconcileVirtualApp struct {
 	client.Client
-	scheme *runtime.Scheme
+	scheme  *runtime.Scheme
+	applier remesh.Applier
 }
 
 // Reconcile reads that state of the cluster for a VirtualApp object and makes changes based on the state read
@@ -97,17 +98,12 @@ type ReconcileVirtualApp struct {
 // +kubebuilder:rbac:groups=networking.istio.io,resources=destinationrules,verbs=get;list;watch;create;update;patch;delete
 func (r *ReconcileVirtualApp) Reconcile(request reconcile.Request) (reconcile.Result, error) {
 	// Fetch the VirtualApp instance
-
 	virtualAppList, err := r.getVirtualAppList(request.Namespace)
-
 	if err != nil {
 		return reconcile.Result{}, err
 	}
 
-	applier := istio.NewIstioApplier(request.Namespace, r)
-	istioapi.AddToScheme(r.scheme) //todo: this should be in the istio applier, but passing reconciler to istio would cause circular reference
-	applier.Apply(virtualAppList.Items)
-
+	r.applier.Apply(virtualAppList.Items, request.Namespace)
 	return reconcile.Result{}, nil
 }
 
