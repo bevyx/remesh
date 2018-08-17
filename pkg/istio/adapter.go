@@ -377,6 +377,9 @@ func (a *IstioApplier) getDesiredResources(virtualApps []remeshv1alpha1.VirtualA
 		gateways = append(gateways, gateway)
 
 		httpRoutes := MakeRouteForVirtualAppConfig(virtualApp)
+		if len(httpRoutes) == 0 { //in case the vappconfig is the only created resource
+			return
+		}
 		gatewayVirtualService, virtualServiceName := resources.MakeIstioVirtualServiceForGateway(httpRoutes, namespace, gatewayName)
 		virtualServices = append(virtualServices, gatewayVirtualService)
 
