@@ -192,16 +192,20 @@ func triageUpdate(existing []runtime.Object, desired []runtime.Object) (res []st
 	desired runtime.Object
 }) {
 	for _, d := range desired {
+		dVal := reflect.ValueOf(d).Elem()
+		desiredSpec := dVal.FieldByName("Spec")
 		if obj, found := findObject(d, existing); found {
-			//if obj == d { //TODO: compare spec
-			res = append(res, struct {
-				actual  runtime.Object
-				desired runtime.Object
-			}{
-				obj,
-				d,
-			})
-			//}
+			aVal := reflect.ValueOf(obj).Elem()
+			actualSpec := aVal.FieldByName("Spec")
+			if !reflect.DeepEqual(actualSpec, desiredSpec) {
+				res = append(res, struct {
+					actual  runtime.Object
+					desired runtime.Object
+				}{
+					obj,
+					d,
+				})
+			}
 		}
 	}
 	return res
