@@ -20,9 +20,9 @@ import (
 	"context"
 	"log"
 
+	"github.com/bevyx/remesh/pkg/adapters"
+	"github.com/bevyx/remesh/pkg/adapters/istio"
 	remeshv1alpha1 "github.com/bevyx/remesh/pkg/apis/remesh/v1alpha1"
-	"github.com/bevyx/remesh/pkg/istio"
-	"github.com/bevyx/remesh/pkg/remesh"
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -83,7 +83,7 @@ var _ reconcile.Reconciler = &ReconcileVirtualApp{}
 type ReconcileVirtualApp struct {
 	client.Client
 	scheme  *runtime.Scheme
-	applier remesh.Applier
+	applier adapters.Applier
 }
 
 // Reconcile reads that state of the cluster for a VirtualApp object and makes changes based on the state read

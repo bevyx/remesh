@@ -1,4 +1,4 @@
-package remesh
+package adapters
 
 import remeshv1alpha1 "github.com/bevyx/remesh/pkg/apis/remesh/v1alpha1"
 

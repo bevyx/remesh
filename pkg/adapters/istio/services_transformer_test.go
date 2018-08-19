@@ -4,8 +4,8 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/bevyx/remesh/pkg/adapters/istio/models"
 	api "github.com/bevyx/remesh/pkg/apis/remesh/v1alpha1"
-	"github.com/bevyx/remesh/pkg/istio/models"
 )
 
 func TestTransformLayout(t *testing.T) {

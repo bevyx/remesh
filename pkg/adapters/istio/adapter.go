@@ -11,9 +11,9 @@ import (
 	goerrors "errors"
 
 	istioapi "github.com/bevyx/istio-api-go/pkg/apis/networking/v1alpha3"
+	"github.com/bevyx/remesh/pkg/adapters"
+	"github.com/bevyx/remesh/pkg/adapters/istio/resources"
 	remeshv1alpha1 "github.com/bevyx/remesh/pkg/apis/remesh/v1alpha1"
-	"github.com/bevyx/remesh/pkg/istio/resources"
-	"github.com/bevyx/remesh/pkg/remesh"
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/runtime"
 )
@@ -24,7 +24,7 @@ type IstioApplier struct {
 }
 
 //NewIstioApplier creates new IstioApplier
-func NewIstioApplier() remesh.Applier {
+func NewIstioApplier() adapters.Applier {
 	clientConfig := config.GetConfigOrDie()
 	istioScheme := runtime.NewScheme()
 	istioapi.AddToScheme(istioScheme)

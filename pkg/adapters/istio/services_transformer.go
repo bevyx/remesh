@@ -1,8 +1,8 @@
 package istio
 
 import (
+	"github.com/bevyx/remesh/pkg/adapters/istio/models"
 	api "github.com/bevyx/remesh/pkg/apis/remesh/v1alpha1"
-	"github.com/bevyx/remesh/pkg/istio/models"
 )
 
 //TransformLayout is
