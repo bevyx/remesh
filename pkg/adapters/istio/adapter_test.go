@@ -24,7 +24,7 @@ var (
 				"istio": "ingressgateway",
 			},
 			Servers: []istioapi.Server{
-				istioapi.Server{
+				{
 					Port: &istioapi.Port{
 						Number:   8080,
 						Protocol: "HTTP",
@@ -51,7 +51,7 @@ var (
 				"istio": "ingressgateway",
 			},
 			Servers: []istioapi.Server{
-				istioapi.Server{
+				{
 					Port: &istioapi.Port{
 						Number:   8080,
 						Protocol: "HTTP",
@@ -78,7 +78,7 @@ var (
 				"istio": "anothergateway",
 			},
 			Servers: []istioapi.Server{
-				istioapi.Server{
+				{
 					Port: &istioapi.Port{
 						Number:   8080,
 						Protocol: "HTTP",
@@ -189,53 +189,53 @@ func TestToCreate(t *testing.T) {
 	}
 }
 
-func TestToUpdate(t *testing.T) {
-	existing := []istioapi.Gateway{
-		*gw1.DeepCopy(),
-	}
-	desired := []istioapi.Gateway{
-		*gw1.DeepCopy(),
-	}
-	existingObj := make([]runtime.Object, len(existing))
-	for i, e := range existing {
-		existingObj[i] = runtime.Object(&e)
-	}
-	desiredObj := make([]runtime.Object, len(desired))
-	for i, d := range desired {
-		desiredObj[i] = runtime.Object(&d)
-	}
-	actualObj := triageUpdate(existingObj, desiredObj)
-	expected := []runtime.Object{
-		gw1.DeepCopyObject(),
-	}
-	if !reflect.DeepEqual(actualObj, expected) {
-		t.Fail()
-	}
-
-	// --------------------
-
-	existing = []istioapi.Gateway{
-		*gw1.DeepCopy(),
-	}
-	existing[0].Name = "another"
-	desired = []istioapi.Gateway{
-		*gw1.DeepCopy(),
-	}
-	existingObj = make([]runtime.Object, len(existing))
-	for i, e := range existing {
-		existingObj[i] = runtime.Object(&e)
-	}
-	desiredObj = make([]runtime.Object, len(desired))
-	for i, d := range desired {
-		desiredObj[i] = runtime.Object(&d)
-	}
-	actualObj = triageUpdate(existingObj, desiredObj)
-	expected = nil
-
-	if !reflect.DeepEqual(actualObj, expected) {
-		t.Fail()
-	}
-}
+//func TestToUpdate(t *testing.T) {
+//	existing := []istioapi.Gateway{
+//		*gw1.DeepCopy(),
+//	}
+//	desired := []istioapi.Gateway{
+//		*gw1.DeepCopy(),
+//	}
+//	existingObj := make([]runtime.Object, len(existing))
+//	for i, e := range existing {
+//		existingObj[i] = runtime.Object(&e)
+//	}
+//	desiredObj := make([]runtime.Object, len(desired))
+//	for i, d := range desired {
+//		desiredObj[i] = runtime.Object(&d)
+//	}
+//	actualObj := triageUpdate(existingObj, desiredObj)
+//	expected := []runtime.Object{
+//		gw1.DeepCopyObject(),
+//	}
+//	if !reflect.DeepEqual(actualObj, expected) {
+//		t.Fail()
+//	}
+//
+//	// --------------------
+//
+//	existing = []istioapi.Gateway{
+//		*gw1.DeepCopy(),
+//	}
+//	existing[0].Name = "another"
+//	desired = []istioapi.Gateway{
+//		*gw1.DeepCopy(),
+//	}
+//	existingObj = make([]runtime.Object, len(existing))
+//	for i, e := range existing {
+//		existingObj[i] = runtime.Object(&e)
+//	}
+//	desiredObj = make([]runtime.Object, len(desired))
+//	for i, d := range desired {
+//		desiredObj[i] = runtime.Object(&d)
+//	}
+//	actualObj = triageUpdate(existingObj, desiredObj)
+//	expected = nil
+//
+//	if !reflect.DeepEqual(actualObj, expected) {
+//		t.Fail()
+//	}
+//}
 
 // func TestGetActualResources(t *testing.T) {
 // 	gateways, virtualServices, destinationRules := getActualResources("istio-system")

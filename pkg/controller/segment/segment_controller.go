@@ -65,8 +65,8 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	// Watch for changes to VirtualApp
 	vappMapper := utils.VirtualAppHandlerMapper(func(rf remeshv1alpha1.ReleaseFlow) []string {
 		names := make([]string, 0)
-		if rf.Targeting != nil {
-			for name := range *rf.Targeting {
+		if rf.Segments != nil {
+			for name := range *rf.Segments {
 				names = append(names, name)
 			}
 		}
@@ -115,13 +115,17 @@ func (r *ReconcileSegment) Reconcile(request reconcile.Request) (reconcile.Resul
 func reconcileSegment(segmentName string, segment *remeshv1alpha1.Segment, virtualApp *remeshv1alpha1.VirtualApp, deleted bool) {
 	releaseFlows := virtualApp.Spec.ReleaseFlows
 	for i := range releaseFlows {
-		if releaseFlows[i].Targeting != nil {
-			if _, ok := (*releaseFlows[i].Targeting)[segmentName]; ok {
-				if deleted {
-					(*releaseFlows[i].Targeting)[segmentName] = nil
-				} else {
-					(*releaseFlows[i].Targeting)[segmentName] = segment.Spec.DeepCopy()
-				}
+		reconcileReleaseFlowSegments(releaseFlows[i].Segments, segmentName, deleted, segment)
+	}
+}
+
+func reconcileReleaseFlowSegments(releaseFlowSegments *map[string]*remeshv1alpha1.SegmentSpec, segmentName string, deleted bool, segment *remeshv1alpha1.Segment) {
+	if releaseFlowSegments != nil {
+		if _, ok := (*releaseFlowSegments)[segmentName]; ok {
+			if deleted {
+				(*releaseFlowSegments)[segmentName] = nil
+			} else {
+				(*releaseFlowSegments)[segmentName] = segment.Spec.DeepCopy()
 			}
 		}
 	}

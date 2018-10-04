@@ -8,23 +8,18 @@ import (
 //MakeRouteForVirtualAppConfig is
 func MakeRouteForVirtualAppConfig(virtualApp api.VirtualApp) []istioapi.HTTPRoute {
 	istioRouteList := make([]istioapi.HTTPRoute, 0)
-	//prioritizedReleaseFlows := make([]models.ReleaseFlow, len(virtualApp.ReleaseFlows))
-	//copy(prioritizedReleaseFlows, virtualApp.ReleaseFlows)
-	//sort.Sort(models.ByPriority(prioritizedReleaseFlows))
 	for _, releaseFlow := range virtualApp.Spec.ReleaseFlows {
 		if releaseFlow.Layout != nil {
-			if releaseFlow.Targeting == nil {
+			if releaseFlow.Segments == nil {
 				defaultIstioRouteList := makeLayoutIstioRouteList(releaseFlow.LayoutName, *releaseFlow.Layout)
 				istioRouteList = append(istioRouteList, defaultIstioRouteList...)
 			} else {
-				combainedIstioRouteList := makeCombainedIstioRouteList(releaseFlow.LayoutName, *releaseFlow.Layout, *releaseFlow.Targeting)
+				combainedIstioRouteList := makeCombainedIstioRouteList(releaseFlow.LayoutName, *releaseFlow.Layout, *releaseFlow.Segments)
 				istioRouteList = append(istioRouteList, combainedIstioRouteList...)
 			}
 		}
 
 	}
-	//defaultIstioRouteList := makeDefaultIstioRouteList(virtualappconfigFlow.DefaultLayout)
-	//istioRouteList = append(istioRouteList, defaultIstioRouteList...)
 
 	return istioRouteList
 }
@@ -37,7 +32,7 @@ func makeCombainedIstioRouteList(layoutName string, layout api.LayoutSpec, segme
 				istioMatchList := make([]istioapi.HTTPMatchRequest, 0)
 				for _, veMatch := range veRoute.Match {
 					for _, targetingMatch := range segment.HttpMatch {
-						istioMatchList = append(istioMatchList, combaineMatchesToIstioMatch(veMatch, targetingMatch))
+						istioMatchList = append(istioMatchList, combineMatchesToIstioMatch(veMatch, targetingMatch))
 					}
 				}
 				istioRouteList = append(istioRouteList, makeIstioRoute(istioMatchList, veRoute.Destination.Host, veRoute.Destination.Port, layoutName))
@@ -53,7 +48,7 @@ func makeLayoutIstioRouteList(layoutName string, layout api.LayoutSpec) []istioa
 	for _, veRoute := range layout.Http {
 		istioMatchList := make([]istioapi.HTTPMatchRequest, 0)
 		for _, veMatch := range veRoute.Match {
-			istioMatchList = append(istioMatchList, combaineMatchesToIstioMatch(veMatch, api.HTTPMatchRequest{}))
+			istioMatchList = append(istioMatchList, combineMatchesToIstioMatch(veMatch, api.HTTPMatchRequest{}))
 		}
 		istioRouteList = append(istioRouteList, makeIstioRoute(istioMatchList, veRoute.Destination.Host, veRoute.Destination.Port, layoutName))
 	}
@@ -70,7 +65,7 @@ func makeIstioRoute(istioMatchList []istioapi.HTTPMatchRequest, destinationHost 
 	return istioapi.HTTPRoute{
 		Match: istioMatchList,
 		Route: []istioapi.DestinationWeight{
-			istioapi.DestinationWeight{
+			{
 				Destination: istioapi.Destination{
 					Host: destinationHost,
 					Port: port,
@@ -84,7 +79,7 @@ func makeIstioRoute(istioMatchList []istioapi.HTTPMatchRequest, destinationHost 
 	}
 }
 
-func combaineMatchesToIstioMatch(veMatchItem api.HTTPMatchRequest, targetingMatchItem api.HTTPMatchRequest) istioapi.HTTPMatchRequest {
+func combineMatchesToIstioMatch(veMatchItem api.HTTPMatchRequest, targetingMatchItem api.HTTPMatchRequest) istioapi.HTTPMatchRequest {
 	uri := selectStringMatchesToIstioStringMatch(veMatchItem.Uri, targetingMatchItem.Uri)
 	scheme := selectStringMatchesToIstioStringMatch(veMatchItem.Scheme, targetingMatchItem.Scheme)
 	method := selectStringMatchesToIstioStringMatch(veMatchItem.Method, targetingMatchItem.Method)
@@ -98,8 +93,8 @@ func combaineMatchesToIstioMatch(veMatchItem api.HTTPMatchRequest, targetingMatc
 		port = veMatchItem.Port
 	}
 
-	sourceLabels := comaineStringMaps(veMatchItem.SourceLabels, targetingMatchItem.SourceLabels)
-	gateways := comaineStringSlicesUnique(veMatchItem.Gateways, targetingMatchItem.Gateways)
+	sourceLabels := combineStringMaps(veMatchItem.SourceLabels, targetingMatchItem.SourceLabels)
+	gateways := combineStringSlicesUnique(veMatchItem.Gateways, targetingMatchItem.Gateways)
 
 	return istioapi.HTTPMatchRequest{
 		Uri:          uri,
@@ -114,7 +109,7 @@ func combaineMatchesToIstioMatch(veMatchItem api.HTTPMatchRequest, targetingMatc
 }
 
 //TODO: move it to utils
-func comaineStringMaps(map1 map[string]string, map2 map[string]string) map[string]string {
+func combineStringMaps(map1 map[string]string, map2 map[string]string) map[string]string {
 	newMap := make(map[string]string, 0)
 	for key, value := range map1 {
 		newMap[key] = value
@@ -126,7 +121,7 @@ func comaineStringMaps(map1 map[string]string, map2 map[string]string) map[strin
 }
 
 //TODO: move it to utils
-func comaineStringSlicesUnique(slice1 []string, slice2 []string) []string {
+func combineStringSlicesUnique(slice1 []string, slice2 []string) []string {
 	stringMap := make(map[string]bool, 0)
 	for _, v := range slice1 {
 		stringMap[v] = true

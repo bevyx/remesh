@@ -23,7 +23,7 @@ import (
 type ReleaseFlow struct {
 	ReleaseName string                   `json:"releaseName,omitempty"`
 	Release     ReleaseSpec              `json:"release,omitempty"`
-	Targeting   *map[string]*SegmentSpec `json:"segments,omitempty"`
+	Segments    *map[string]*SegmentSpec `json:"segments,omitempty"`
 	LayoutName  string                   `json:"layoutName,omitempty"`
 	Layout      *LayoutSpec              `json:"layout,omitempty"`
 }

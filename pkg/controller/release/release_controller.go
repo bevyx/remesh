@@ -154,58 +154,89 @@ func (r *ReconcileRelease) Reconcile(request reconcile.Request) (reconcile.Resul
 
 func reconcileRelease(releaseName string, release *remeshv1alpha1.Release, virtualApp *remeshv1alpha1.VirtualApp, deleted bool) {
 	releaseFlows := virtualApp.Spec.ReleaseFlows
+	rfKey := findReleaseFlow(releaseFlows, releaseName)
+
+	if !releaseFlowExist(rfKey) {
+		generateNewReleaseFlow(release, virtualApp, releaseName)
+	} else {
+		reconcileOrDeleteExistingReleaseFlow(deleted, virtualApp, rfKey, releaseFlows, release)
+	}
+	sort.Sort(remeshv1alpha1.ByPriority(virtualApp.Spec.ReleaseFlows))
+}
+
+func releaseFlowExist(rfKey int) bool {
+	return rfKey != -1
+}
+
+func reconcileOrDeleteExistingReleaseFlow(deleted bool, virtualApp *remeshv1alpha1.VirtualApp, rfKey int, releaseFlows []remeshv1alpha1.ReleaseFlow, release *remeshv1alpha1.Release) {
+	if deleted {
+		removeReleaseFlow(virtualApp, rfKey)
+	} else {
+		reconcileExistingReleaseFlow(releaseFlows, rfKey, release)
+	}
+}
+
+func reconcileExistingReleaseFlow(releaseFlows []remeshv1alpha1.ReleaseFlow, rfKey int, release *remeshv1alpha1.Release) {
+	releaseFlow := releaseFlows[rfKey]
+	releaseFlow.Release = *release.Spec.DeepCopy()
+	reconcileLayout(release, releaseFlow)
+	reconcileSegments(release, releaseFlow)
+}
+
+func reconcileSegments(release *remeshv1alpha1.Release, releaseFlow remeshv1alpha1.ReleaseFlow) {
+	if release.Spec.Targeting != nil {
+		newTargeting := &map[string]*remeshv1alpha1.SegmentSpec{}
+		for _, seg := range release.Spec.Targeting.Segments {
+			if releaseFlow.Segments != nil {
+				if val, ok := (*releaseFlow.Segments)[seg]; ok {
+					(*newTargeting)[seg] = val
+				} else {
+					(*newTargeting)[seg] = nil
+				}
+			} else {
+				(*newTargeting)[seg] = nil
+			}
+		}
+		releaseFlow.Segments = newTargeting
+	} else {
+		releaseFlow.Segments = nil
+	}
+}
+
+func reconcileLayout(release *remeshv1alpha1.Release, releaseFlow remeshv1alpha1.ReleaseFlow) {
+	if release.Spec.Layout != releaseFlow.LayoutName {
+		releaseFlow.LayoutName = release.Spec.Layout
+		releaseFlow.Layout = nil
+	}
+}
+
+func removeReleaseFlow(virtualApp *remeshv1alpha1.VirtualApp, rfKey int) {
+	virtualApp.Spec.ReleaseFlows = append(virtualApp.Spec.ReleaseFlows[:rfKey], virtualApp.Spec.ReleaseFlows[rfKey+1:]...)
+}
+
+func generateNewReleaseFlow(release *remeshv1alpha1.Release, virtualApp *remeshv1alpha1.VirtualApp, releaseName string) {
+	var targeting *map[string]*remeshv1alpha1.SegmentSpec
+	if release.Spec.Targeting != nil {
+		targeting = &map[string]*remeshv1alpha1.SegmentSpec{}
+		for _, seg := range release.Spec.Targeting.Segments {
+			(*targeting)[seg] = nil
+		}
+	}
+	virtualApp.Spec.ReleaseFlows = append(virtualApp.Spec.ReleaseFlows, remeshv1alpha1.ReleaseFlow{
+		ReleaseName: releaseName,
+		Release:     *release.Spec.DeepCopy(),
+		Segments:    targeting,
+		LayoutName:  release.Spec.Layout,
+		Layout:      nil,
+	})
+}
+
+func findReleaseFlow(releaseFlows []remeshv1alpha1.ReleaseFlow, releaseName string) int {
 	rfKey := -1
 	for i := range releaseFlows {
 		if releaseFlows[i].ReleaseName == releaseName {
 			rfKey = i
 		}
 	}
-
-	if rfKey == -1 {
-		var targeting *map[string]*remeshv1alpha1.SegmentSpec
-		if release.Spec.Targeting != nil {
-			targeting = &map[string]*remeshv1alpha1.SegmentSpec{}
-			for _, seg := range release.Spec.Targeting.Segments {
-				(*targeting)[seg] = nil
-			}
-		}
-
-		virtualApp.Spec.ReleaseFlows = append(virtualApp.Spec.ReleaseFlows, remeshv1alpha1.ReleaseFlow{
-			ReleaseName: releaseName,
-			Release:     *release.Spec.DeepCopy(),
-			Targeting:   targeting,
-			LayoutName:  release.Spec.Layout,
-			Layout:      nil,
-		})
-	} else {
-		if deleted {
-			virtualApp.Spec.ReleaseFlows = append(virtualApp.Spec.ReleaseFlows[:rfKey], virtualApp.Spec.ReleaseFlows[rfKey+1:]...)
-		} else {
-			releaseFlow := releaseFlows[rfKey]
-			releaseFlow.Release = *release.Spec.DeepCopy()
-			if release.Spec.Layout != releaseFlow.LayoutName {
-				releaseFlow.LayoutName = release.Spec.Layout
-				releaseFlow.Layout = nil
-			}
-			if release.Spec.Targeting == nil {
-				releaseFlow.Targeting = nil
-			} else {
-				newTargeting := &map[string]*remeshv1alpha1.SegmentSpec{}
-				for _, seg := range release.Spec.Targeting.Segments {
-					if releaseFlow.Targeting != nil {
-						if val, ok := (*releaseFlow.Targeting)[seg]; ok {
-							(*newTargeting)[seg] = val
-						} else {
-							(*newTargeting)[seg] = nil
-						}
-					} else {
-						(*newTargeting)[seg] = nil
-					}
-				}
-				releaseFlow.Targeting = newTargeting
-			}
-
-		}
-	}
-	sort.Sort(remeshv1alpha1.ByPriority(virtualApp.Spec.ReleaseFlows))
+	return rfKey
 }
