@@ -3,30 +3,28 @@ kind: Layout
 metadata:
   name: bookinfo-1-1-0
 spec:
-  http:
-  - match:
-    - uri:
-        exact: /productpage
-    - uri:
-        exact: /login
-    - uri:
-        exact: /logout
-    - uri:
-        prefix: /api/v1/products
-    destination:
-      host: productpage
-      port:
-        number: 9080
   services:
   - host: productpage
     labels:
-      version: v1
+      version: v1.0.0
+    http:
+    - match:
+      - uri:
+          exact: /productpage
+      - uri:
+          exact: /login
+      - uri:
+          exact: /logout
+      - uri:
+          prefix: /api/v1/products
+      destinationPort:
+        number: 9080
   - host: reviews
     labels:
-      version: v2
+      version: v1.0.0-ratings
   - host: ratings
     labels:
-      version: v1
+      version: v1.0.0
   - host: details
     labels:
-      version: v1
+      version: v1.0.0

@@ -43,16 +43,16 @@ func makeVirtualServiceSpec(transformedService istiomodels.TransformedService, n
 		for _, layout := range subsetService.Layouts {
 			https = append(https, istioapi.HTTPRoute{
 				Match: []istioapi.HTTPMatchRequest{
-					istioapi.HTTPMatchRequest{
+					{
 						Headers: map[string]istioapi.StringMatch{
-							HeaderRouteName: istioapi.StringMatch{
+							HeaderRouteName: {
 								Exact: layout,
 							},
 						},
 					},
 				},
 				Route: []istioapi.DestinationWeight{
-					istioapi.DestinationWeight{
+					{
 						Destination: istioapi.Destination{
 							Host:   transformedService.Host,
 							Subset: GetSubsetName(transformedService.Host, subsetService.SubsetHash),

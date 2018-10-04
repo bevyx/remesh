@@ -5,16 +5,16 @@ import (
 	api "github.com/bevyx/remesh/pkg/apis/remesh/v1alpha1"
 )
 
-//MakeRouteForVirtualAppConfig is
-func MakeRouteForVirtualAppConfig(virtualApp api.VirtualApp) []istioapi.HTTPRoute {
+//TranslateVirtualAppConfig translates VirtualApp object to list of istio HTTPRoute
+func TranslateVirtualAppConfig(virtualApp api.VirtualApp) []istioapi.HTTPRoute {
 	istioRouteList := make([]istioapi.HTTPRoute, 0)
 	for _, releaseFlow := range virtualApp.Spec.ReleaseFlows {
 		if releaseFlow.Layout != nil {
 			if releaseFlow.Segments == nil {
-				defaultIstioRouteList := makeLayoutIstioRouteList(releaseFlow.LayoutName, *releaseFlow.Layout)
+				defaultIstioRouteList := translateLayouts(releaseFlow.LayoutName, *releaseFlow.Layout)
 				istioRouteList = append(istioRouteList, defaultIstioRouteList...)
 			} else {
-				combainedIstioRouteList := makeCombainedIstioRouteList(releaseFlow.LayoutName, *releaseFlow.Layout, *releaseFlow.Segments)
+				combainedIstioRouteList := translateAndCombineLayoutsAndSegments(releaseFlow.LayoutName, *releaseFlow.Layout, *releaseFlow.Segments)
 				istioRouteList = append(istioRouteList, combainedIstioRouteList...)
 			}
 		}
@@ -24,38 +24,47 @@ func MakeRouteForVirtualAppConfig(virtualApp api.VirtualApp) []istioapi.HTTPRout
 	return istioRouteList
 }
 
-func makeCombainedIstioRouteList(layoutName string, layout api.LayoutSpec, segments map[string]*api.SegmentSpec) []istioapi.HTTPRoute {
-	istioRouteList := make([]istioapi.HTTPRoute, 0)
+func translateAndCombineLayoutsAndSegments(layoutName string, layout api.LayoutSpec, segments map[string]*api.SegmentSpec) []istioapi.HTTPRoute {
+	routeList := make([]istioapi.HTTPRoute, 0)
 	for _, segment := range segments {
 		if segment != nil {
-			for _, veRoute := range layout.Http {
-				istioMatchList := make([]istioapi.HTTPMatchRequest, 0)
-				for _, veMatch := range veRoute.Match {
-					for _, targetingMatch := range segment.HttpMatch {
-						istioMatchList = append(istioMatchList, combineMatchesToIstioMatch(veMatch, targetingMatch))
-					}
-				}
-				istioRouteList = append(istioRouteList, makeIstioRoute(istioMatchList, veRoute.Destination.Host, veRoute.Destination.Port, layoutName))
+			for _, service := range layout.Services {
+				routeList = append(routeList, translateAndCombineLayoutServicesAndSegments(service, segment, layoutName)...)
 			}
 		}
 	}
-
-	return istioRouteList
+	return routeList
 }
 
-func makeLayoutIstioRouteList(layoutName string, layout api.LayoutSpec) []istioapi.HTTPRoute {
-	istioRouteList := make([]istioapi.HTTPRoute, 0)
-	for _, veRoute := range layout.Http {
-		istioMatchList := make([]istioapi.HTTPMatchRequest, 0)
-		for _, veMatch := range veRoute.Match {
-			istioMatchList = append(istioMatchList, combineMatchesToIstioMatch(veMatch, api.HTTPMatchRequest{}))
+func translateAndCombineLayoutServicesAndSegments(service api.Service, segment *api.SegmentSpec, layoutName string) []istioapi.HTTPRoute {
+	routeList := make([]istioapi.HTTPRoute, 0)
+	for _, httpRoute := range service.Http {
+		matchList := make([]istioapi.HTTPMatchRequest, 0)
+		for _, layoutMatch := range httpRoute.Match {
+			for _, segmentMatch := range segment.HttpMatch {
+				matchList = append(matchList, translateAndCombineMatches(layoutMatch, segmentMatch))
+			}
 		}
-		istioRouteList = append(istioRouteList, makeIstioRoute(istioMatchList, veRoute.Destination.Host, veRoute.Destination.Port, layoutName))
+		routeList = append(routeList, makeRoute(matchList, service.Host, httpRoute.DestinationPort, layoutName))
 	}
-	return istioRouteList
+	return routeList
 }
 
-func makeIstioRoute(istioMatchList []istioapi.HTTPMatchRequest, destinationHost string, destinationRoutePort *api.PortSelector, layoutName string) istioapi.HTTPRoute {
+func translateLayouts(layoutName string, layout api.LayoutSpec) []istioapi.HTTPRoute {
+	routeList := make([]istioapi.HTTPRoute, 0)
+	for _, service := range layout.Services {
+		for _, httpRoute := range service.Http {
+			istioMatchList := make([]istioapi.HTTPMatchRequest, 0)
+			for _, layoutMatch := range httpRoute.Match {
+				istioMatchList = append(istioMatchList, translateAndCombineMatches(layoutMatch, api.HTTPMatchRequest{}))
+			}
+			routeList = append(routeList, makeRoute(istioMatchList, service.Host, httpRoute.DestinationPort, layoutName))
+		}
+	}
+	return routeList
+}
+
+func makeRoute(istioMatchList []istioapi.HTTPMatchRequest, destinationHost string, destinationRoutePort *api.PortSelector, layoutName string) istioapi.HTTPRoute {
 	var port *istioapi.PortSelector
 	if destinationRoutePort != nil {
 		port = &istioapi.PortSelector{
@@ -79,12 +88,12 @@ func makeIstioRoute(istioMatchList []istioapi.HTTPMatchRequest, destinationHost 
 	}
 }
 
-func combineMatchesToIstioMatch(veMatchItem api.HTTPMatchRequest, targetingMatchItem api.HTTPMatchRequest) istioapi.HTTPMatchRequest {
-	uri := selectStringMatchesToIstioStringMatch(veMatchItem.Uri, targetingMatchItem.Uri)
-	scheme := selectStringMatchesToIstioStringMatch(veMatchItem.Scheme, targetingMatchItem.Scheme)
-	method := selectStringMatchesToIstioStringMatch(veMatchItem.Method, targetingMatchItem.Method)
-	authority := selectStringMatchesToIstioStringMatch(veMatchItem.Authority, targetingMatchItem.Authority)
-	headers := comaineMapOfStringMatchesToIstio(veMatchItem.Headers, targetingMatchItem.Headers)
+func translateAndCombineMatches(veMatchItem api.HTTPMatchRequest, targetingMatchItem api.HTTPMatchRequest) istioapi.HTTPMatchRequest {
+	uri := translateAndSelectStringMatches(veMatchItem.Uri, targetingMatchItem.Uri)
+	scheme := translateAndSelectStringMatches(veMatchItem.Scheme, targetingMatchItem.Scheme)
+	method := translateAndSelectStringMatches(veMatchItem.Method, targetingMatchItem.Method)
+	authority := translateAndSelectStringMatches(veMatchItem.Authority, targetingMatchItem.Authority)
+	headers := translateAndComaineMapOfStringMatches(veMatchItem.Headers, targetingMatchItem.Headers)
 
 	port := uint32(0)
 	if targetingMatchItem.Port > 0 {
@@ -136,22 +145,22 @@ func combineStringSlicesUnique(slice1 []string, slice2 []string) []string {
 	return newSlice
 }
 
-func comaineMapOfStringMatchesToIstio(veMap map[string]api.StringMatch, targetingMap map[string]api.StringMatch) map[string]istioapi.StringMatch {
+func translateAndComaineMapOfStringMatches(veMap map[string]api.StringMatch, targetingMap map[string]api.StringMatch) map[string]istioapi.StringMatch {
 	istioMap := make(map[string]istioapi.StringMatch, 0)
 	for keyVe, valueVe := range veMap {
-		istioMap[keyVe] = *stringMatchToIstioStringMatch(&valueVe)
+		istioMap[keyVe] = *translateStringMatch(&valueVe)
 	}
 	for keyTargeting, valueTargeting := range targetingMap {
-		istioMap[keyTargeting] = *stringMatchToIstioStringMatch(&valueTargeting)
+		istioMap[keyTargeting] = *translateStringMatch(&valueTargeting)
 	}
 	return istioMap
 }
 
-func selectStringMatchesToIstioStringMatch(veStringMatch *api.StringMatch, targetingStringMatch *api.StringMatch) *istioapi.StringMatch {
+func translateAndSelectStringMatches(veStringMatch *api.StringMatch, targetingStringMatch *api.StringMatch) *istioapi.StringMatch {
 	if !isStringMatchEmpty(targetingStringMatch) {
-		return stringMatchToIstioStringMatch(targetingStringMatch)
+		return translateStringMatch(targetingStringMatch)
 	} else if !isStringMatchEmpty(veStringMatch) {
-		return stringMatchToIstioStringMatch(veStringMatch)
+		return translateStringMatch(veStringMatch)
 	}
 	return nil
 }
@@ -160,7 +169,7 @@ func isStringMatchEmpty(stringMatch *api.StringMatch) bool {
 	return stringMatch == nil || (stringMatch.Exact == "" && stringMatch.Prefix == "" && stringMatch.Regex == "")
 }
 
-func stringMatchToIstioStringMatch(stringMatch *api.StringMatch) *istioapi.StringMatch {
+func translateStringMatch(stringMatch *api.StringMatch) *istioapi.StringMatch {
 	return &istioapi.StringMatch{
 		Exact:  stringMatch.Exact,
 		Prefix: stringMatch.Prefix,

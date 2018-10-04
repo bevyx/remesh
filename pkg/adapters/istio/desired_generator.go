@@ -39,7 +39,7 @@ func extractVirtualApps(virtualApps []remeshv1alpha1.VirtualApp, namespace strin
 func extractVirtualApp(virtualApp remeshv1alpha1.VirtualApp, namespace string) (gateway istioapi.Gateway, gatewayVirtualService istioapi.VirtualService, gatewayVirtualServiceName string, layoutMap map[string]remeshv1alpha1.LayoutSpec) {
 
 	gateway, gatewayName := resources.MakeIstioGateway(virtualApp, namespace)
-	httpRoutes := MakeRouteForVirtualAppConfig(virtualApp)
+	httpRoutes := TranslateVirtualAppConfig(virtualApp)
 	gatewayVirtualService, gatewayVirtualServiceName = resources.MakeIstioVirtualServiceForGateway(httpRoutes, namespace, gatewayName)
 	layoutMap = getLayoutMapFromReleaseFlows(virtualApp.Spec.ReleaseFlows)
 

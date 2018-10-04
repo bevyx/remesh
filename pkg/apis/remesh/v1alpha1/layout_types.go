@@ -24,19 +24,15 @@ type PortSelector struct {
 	Number uint32 `json:"number,omitempty"`
 }
 
-type Destination struct {
-	Host string        `json:"host,omitempty"`
-	Port *PortSelector `json:"port,omitempty"`
-}
-
 type Service struct {
 	Host   string            `json:"host,omitempty"`
 	Labels map[string]string `json:"labels,omitempty"`
+	Http   []HTTPRoute       `json:"http,omitempty"`
 }
 
 type HTTPRoute struct {
-	Match       []HTTPMatchRequest `json:"match,omitempty"`
-	Destination Destination        `json:"destination,omitempty"`
+	Match           []HTTPMatchRequest `json:"match,omitempty"`
+	DestinationPort *PortSelector      `json:"port,omitempty"`
 }
 
 type HTTPMatchRequest struct {
@@ -63,8 +59,7 @@ type StringMatch struct {
 type LayoutSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
-	Http     []HTTPRoute `json:"http,omitempty"`
-	Services []Service   `json:"services,omitempty"`
+	Services []Service `json:"services,omitempty"`
 }
 
 // LayoutStatus defines the observed state of Layout

@@ -11,28 +11,6 @@ import (
 func TestTransformLayout(t *testing.T) {
 	layoutMap := map[string]api.LayoutSpec{
 		"bookinfo": {
-			Http: []api.HTTPRoute{{
-				Match: []api.HTTPMatchRequest{
-					{
-						Uri: &api.StringMatch{Exact: "/productpage"},
-					},
-					{
-						Uri: &api.StringMatch{Exact: "/login"},
-					},
-					{
-						Uri: &api.StringMatch{Exact: "/logout"},
-					},
-					{
-						Uri: &api.StringMatch{Prefix: "/api/v1/products"},
-					},
-				},
-				Destination: api.Destination{
-					Host: "productpage",
-					Port: &api.PortSelector{
-						Number: 9080,
-					},
-				},
-			}},
 			Services: []api.Service{
 				{
 					Host: "productpage",
@@ -40,6 +18,25 @@ func TestTransformLayout(t *testing.T) {
 						"version": "v1",
 						"stam":    "v1",
 					},
+					Http: []api.HTTPRoute{{
+						DestinationPort: &api.PortSelector{
+							Number: 9080,
+						},
+						Match: []api.HTTPMatchRequest{
+							{
+								Uri: &api.StringMatch{Exact: "/productpage"},
+							},
+							{
+								Uri: &api.StringMatch{Exact: "/login"},
+							},
+							{
+								Uri: &api.StringMatch{Exact: "/logout"},
+							},
+							{
+								Uri: &api.StringMatch{Prefix: "/api/v1/products"},
+							},
+						},
+					}},
 				},
 				{
 					Host: "reviews",
@@ -55,28 +52,6 @@ func TestTransformLayout(t *testing.T) {
 				}},
 		},
 		"bookinfo-ratings": {
-			Http: []api.HTTPRoute{{
-				Match: []api.HTTPMatchRequest{
-					{
-						Uri: &api.StringMatch{Exact: "/productpage"},
-					},
-					{
-						Uri: &api.StringMatch{Exact: "/login"},
-					},
-					{
-						Uri: &api.StringMatch{Exact: "/logout"},
-					},
-					{
-						Uri: &api.StringMatch{Prefix: "/api/v1/products"},
-					},
-				},
-				Destination: api.Destination{
-					Host: "productpage",
-					Port: &api.PortSelector{
-						Number: 9080,
-					},
-				},
-			}},
 			Services: []api.Service{
 				{
 					Host: "productpage",
@@ -84,6 +59,25 @@ func TestTransformLayout(t *testing.T) {
 						"stam":    "v1",
 						"version": "v1",
 					},
+					Http: []api.HTTPRoute{{
+						Match: []api.HTTPMatchRequest{
+							{
+								Uri: &api.StringMatch{Exact: "/productpage"},
+							},
+							{
+								Uri: &api.StringMatch{Exact: "/login"},
+							},
+							{
+								Uri: &api.StringMatch{Exact: "/logout"},
+							},
+							{
+								Uri: &api.StringMatch{Prefix: "/api/v1/products"},
+							},
+						},
+						DestinationPort: &api.PortSelector{
+							Number: 9080,
+						},
+					}},
 				},
 				{
 					Host: "reviews",
